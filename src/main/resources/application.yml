@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: Green Space API
+    description: Uma API desenvolvida para alimentar a rede social GreenSpace.
+  config:
+    import: optional:file:.env[.properties]
+  app:
+    host: ${APP_HOST:localhost}
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME:admin}
+    password: ${DATABASE_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+  devtools:
+    restart:
+      enabled: true
+  mail:
+    from: ${EMAIL_SMTP_USERNAME:example@gmail.com}
+    host: ${EMAIL_SMTP_HOST:smtp.example.com}
+    port: ${EMAIL_SMTP_HOST_PORT:587}
+    username: ${EMAIL_SMTP_USERNAME:example@gmail.com}
+    password: ${EMAIL_SMTP_PASSWORD:password}
+    properties:
+      mail:
+        smtp:
+          auth: ${EMAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${EMAIL_SMTP_STARTTLS_ENABLE:true}
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+logging:
+  level:
+    org:
+      springframework:
+        core:
+          env: DEBUG
+      springframework:
+        jdbc:
+          core: DEBUG
+    com:
+      zaxxer:
+        hikari: DEBUG
+
+ratelimiter:
+  capacity: ${RATE_LIMITER_CAPACITY:10}
+  refillTokens: ${RATE_LIMITER_REFILL_TOKENS:10}
+  refillPeriod: ${RATE_LIMITER_REFILL_PERIOD:1}
+
+verification:
+  token:
+    expiry:
+      hours: 24
+
+jakarta:
+  persistence:
+    jdbc:
+      url: ${DATABASE_URL}
+
+hibernate:
+  dialect: org.hibernate.dialect.PostgreSQLDialect
