@@ -39,7 +39,6 @@ logging:
       springframework:
         core:
           env: DEBUG
-      springframework:
         jdbc:
           core: DEBUG
     com:
