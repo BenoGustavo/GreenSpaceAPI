@@ -2,13 +2,14 @@ spring:
   application:
     name: Green Space API
     description: Uma API desenvolvida para alimentar a rede social GreenSpace.
+    version: 1
   config:
     import: optional:file:.env[.properties]
   app:
     host: ${APP_HOST:localhost}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
   datasource:
     url: ${DATABASE_URL}
