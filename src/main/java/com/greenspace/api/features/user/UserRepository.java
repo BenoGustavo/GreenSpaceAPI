@@ -20,4 +20,14 @@ public interface UserRepository extends JpaRepository<UserModel, UUID> {
     @Transactional
     @Query("DELETE FROM TokenModel v WHERE v.user = :user")
     void deleteAllUserTokens(@Param("user") UserModel user);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserModel u SET u.loggedInAt = CURRENT_TIMESTAMP WHERE u.id = :id")
+    void updateLastLogin(@Param("id") UUID id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserModel u SET u.isOnline = NOT u.isOnline WHERE u.id = :id")
+    void toggleIsOnline(@Param("id") UUID id);
 }
