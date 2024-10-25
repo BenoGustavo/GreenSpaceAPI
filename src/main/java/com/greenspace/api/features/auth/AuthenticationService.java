@@ -6,9 +6,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,7 @@ import com.greenspace.api.error.http.Unauthorized401Exception;
 import com.greenspace.api.features.email.EmailService;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
+import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.UserModel;
 
 @Service
@@ -37,6 +36,8 @@ public class AuthenticationService {
     private TokenService tokenService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private Jwt jwtUtil;
 
     private static final String USERNAME_REGEX = "@([A-Za-z0-9._]{1,30})";
     private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_REGEX);
@@ -106,7 +107,7 @@ public class AuthenticationService {
             throws UsernameNotFoundException, Unauthorized401Exception {
 
         // Verifica se ja existe um usuario logado
-        if (isUserAuthenticated()) {
+        if (jwtUtil.isUserAuthenticated()) {
             throw new Unauthorized401Exception("Logout first before authenticating");
         }
 
@@ -133,16 +134,43 @@ public class AuthenticationService {
             throw new Unauthorized401Exception("User is currently deleted user");
         }
 
-        // Atualiza o ultimo login do usuario e muda o status de online
+        // Atualiza o ultimo login do usuario e verifica se o usuario ja está online e
+        // então muda o status de online
         userRepository.updateLastLogin(user.getId());
-        userRepository.toggleIsOnline(user.getId());
+
+        if (!isUserOnline(user)) {
+            userRepository.toggleIsOnline(user.getId());
+        }
+
         return user;
     }
 
-    // Verifica se o usuario esta autenticado
-    private boolean isUserAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getPrincipal() != "anonymousUser";
+    public void logout(String authHeader) {
+        // Verifica se o usuario esta autenticado
+        if (!jwtUtil.isUserAuthenticated()) {
+            throw new Unauthorized401Exception("User is not authenticated");
+        }
+
+        // Procura o usuario no banco de dados
+        UserModel user = userRepository
+                .findByEmailAddress(jwtUtil.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // Verifica se o usuario ja deletou sua conta
+        if (user.getDeletedAt() != null) {
+            throw new Unauthorized401Exception("User is currently deleted user");
+        }
+
+        // Verifica se o usuario ja está online e então muda o status de online
+        if (isUserOnline(user)) {
+            userRepository.toggleIsOnline(user.getId());
+        }
+
+        // Extraindo token do header
+        String token = extractTokenFromHeader(authHeader);
+
+        // Invalida o token do usuario
+        jwtUtil.invalidateUserToken(token);
     }
 
     public boolean isUsernameValid(String username) {
@@ -153,4 +181,14 @@ public class AuthenticationService {
         return matcher.matches();
     }
 
+    private boolean isUserOnline(UserModel user) {
+        return user.getIsOnline();
+    }
+
+    private String extractTokenFromHeader(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        return null;
+    }
 }
