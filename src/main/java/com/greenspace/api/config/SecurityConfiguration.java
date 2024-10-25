@@ -32,6 +32,10 @@ public class SecurityConfiguration {
                         "/swagger-ui/**", "/public/api/v1/auth/**"
         };
 
+        private final String[] AUTHENTICATED_ROUTES = {
+                        "/public/api/v1/auth/logout"
+        };
+
         private final static String[] ONLY_ADMIN_ALLOWED_ROUTES = {
                         "admin/api/v1/**"
         };
@@ -40,6 +44,7 @@ public class SecurityConfiguration {
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                                                .requestMatchers(AUTHENTICATED_ROUTES).authenticated()
                                                 .requestMatchers(WHITE_LIST).permitAll()
                                                 .requestMatchers(ONLY_ADMIN_ALLOWED_ROUTES).hasRole("ADMIN")
                                                 .anyRequest().authenticated())
