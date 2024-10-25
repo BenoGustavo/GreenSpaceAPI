@@ -2,6 +2,7 @@ package com.greenspace.api.config;
 
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,11 +22,8 @@ import com.greenspace.api.models.UserModel;
 @Configuration
 public class ApplicationConfiguration {
 
-    private final UserRepository userRepository;
-
-    public ApplicationConfiguration(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
     @Bean
     UserDetailsService userDetailsService() {
