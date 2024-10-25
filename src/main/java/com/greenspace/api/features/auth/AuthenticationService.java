@@ -4,6 +4,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +19,7 @@ import com.greenspace.api.dto.email.EmailDTO;
 import com.greenspace.api.enums.PermissionLevel;
 import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
+import com.greenspace.api.error.http.Unauthorized401Exception;
 import com.greenspace.api.features.email.EmailService;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
@@ -28,6 +35,8 @@ public class AuthenticationService {
     private EmailService emailService;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     private static final String USERNAME_REGEX = "@([A-Za-z0-9._]{1,30})";
     private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_REGEX);
@@ -93,8 +102,47 @@ public class AuthenticationService {
         return "A email has been sent to your email address. Please verify your email address to login";
     }
 
-    UserModel authenticate(LoginDTO loginDto) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public UserModel authenticate(LoginDTO loginDto)
+            throws UsernameNotFoundException, Unauthorized401Exception {
+
+        // Verifica se ja existe um usuario logado
+        if (isUserAuthenticated()) {
+            throw new Unauthorized401Exception("Logout first before authenticating");
+        }
+
+        // Tenta realizar o login utilizando email e senha
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDto.getEmail(),
+                            loginDto.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new Unauthorized401Exception("Invalid email or password");
+        }
+
+        // Procura o usuario no banco de dados
+        UserModel user = userRepository.findByEmailAddress(loginDto.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // Verifica se o usuario ja ativou sua conta
+        if (!user.getIsEmailValidated()) {
+            throw new Unauthorized401Exception("Account not verified, check your email adress or signup");
+        }
+
+        // Verifica se o usuario não deletou sua conta
+        if (user.getDeletedAt() != null) {
+            throw new Unauthorized401Exception("User is currently deleted user");
+        }
+
+        // Atualiza o ultimo login do usuario e muda o status de online
+        userRepository.updateLastLogin(user.getId());
+        userRepository.toggleIsOnline(user.getId());
+        return user;
+    }
+
+    // Verifica se o usuario esta autenticado
+    private boolean isUserAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getPrincipal() != "anonymousUser";
     }
 
     public boolean isUsernameValid(String username) {
