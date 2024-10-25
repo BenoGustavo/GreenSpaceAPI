@@ -24,6 +24,9 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Component
 public class Jwt {
 
+    @Autowired
+    private JwtTokensBlackList jwtTokensBlackList;
+
     private final Date expirationJwtDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24); // 24 hours
 
     private final byte[] secretKey;
@@ -164,22 +167,24 @@ public class Jwt {
     public String getCurrentUserEmail() throws Unauthorized401Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            System.out.println("\n\nAuthentication: " + authentication.getName() + "\n\n");
             return authentication.getName();
         }
 
         throw new Unauthorized401Exception("User is not authenticated");
     }
 
-    public boolean isUserAuthenticated(Authentication authentication) {
-        System.out.println("\n\nAuthentication: " + authentication + "\n\n");
+    public boolean isUserAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof UsernamePasswordAuthenticationToken token) {
-            boolean isAuthenticated = token.isAuthenticated();
-            return isAuthenticated;
+        if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            return authentication.isAuthenticated();
         }
 
         return false;
+    }
+
+    public void invalidateUserToken(String token) {
+        jwtTokensBlackList.addToBlacklist(token);
     }
 
     /**
