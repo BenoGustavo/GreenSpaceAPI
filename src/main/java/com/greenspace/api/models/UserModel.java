@@ -36,10 +36,11 @@ public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
-    private UUID userId;
+    private UUID Id;
 
-    private String firstName;
-    private String lastName;
+    @Column(unique = true)
+    private String username;
+
     private String nickname;
     private String password;
     private String phoneNumber;
