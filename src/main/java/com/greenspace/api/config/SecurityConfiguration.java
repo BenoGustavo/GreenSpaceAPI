@@ -29,7 +29,7 @@ public class SecurityConfiguration {
 
         private final String[] WHITE_LIST = {
                         "/api/auth/**", "/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/swagger-ui/**",
+                        "/swagger-ui/**", "/public/api/v1/auth/**"
         };
 
         private final static String[] ONLY_ADMIN_ALLOWED_ROUTES = {
