@@ -1,0 +1,83 @@
+package com.greenspace.api.features.auth;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.greenspace.api.dto.auth.LoginDTO;
+import com.greenspace.api.dto.auth.RegisterDTO;
+import com.greenspace.api.dto.auth.TokenDTO;
+import com.greenspace.api.dto.responses.Response;
+import com.greenspace.api.enums.TokenType;
+import com.greenspace.api.features.token.TokenService;
+import com.greenspace.api.jwt.Jwt;
+import com.greenspace.api.models.TokenModel;
+import com.greenspace.api.models.UserModel;
+
+@RestController
+@RequestMapping("/public/api/v1/auth")
+public class AuthenticationController {
+        @Autowired
+        private AuthenticationService authenticationService;
+
+        @Autowired
+        private TokenService tokenService;
+
+        @Autowired
+        private Jwt jwtUtil;
+
+        @PostMapping("/signup")
+        public ResponseEntity<Response<Object>> signup(@RequestBody RegisterDTO registerDto)
+                        throws IllegalArgumentException {
+
+                String confirmationMessage = authenticationService.signup(registerDto);
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data(confirmationMessage)
+                                .build();
+
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/verify-account")
+        public ResponseEntity<Response<Object>> verifyEmail(@RequestParam("token") String token) {
+                TokenModel validatedToken = tokenService.findByToken(token, TokenType.ACCOUNT_ACTIVATION);
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data("Email successfully verified")
+                                .build();
+
+                tokenService.deleteToken(validatedToken);
+                return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/login")
+        public ResponseEntity<Response<Object>> login(@RequestBody LoginDTO loginDto) {
+                UserModel authenticatedUser = authenticationService.authenticate(loginDto);
+
+                String jwtToken = jwtUtil.generateToken(authenticatedUser);
+
+                TokenDTO loginResponse = TokenDTO
+                                .builder()
+                                .token(jwtToken)
+                                .expiresIn(jwtUtil.extractExpirationDate(jwtToken))
+                                .build();
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data(loginResponse)
+                                .build();
+
+                return ResponseEntity.ok(response);
+        }
+}
