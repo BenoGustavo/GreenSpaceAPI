@@ -211,6 +211,8 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                 .build();
 
+                System.out.println("\n\nA unknown exception was thrown : " + ex + "\n\n");
+
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(responseBody);
         }
 }
