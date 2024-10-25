@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.greenspace.api.dto.responses.Response;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +30,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Lazy
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtTokensBlackList jwtTokensBlackList;
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -36,12 +41,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+            response.setStatus(403);
+            response.getWriter().write(Response.builder()
+                    .message("Forbidden")
+                    .status(403)
+                    .data("Authorization header is missing or invalid")
+                    .build().toString());
+
             filterChain.doFilter(request, response);
             return;
         }
 
         final String jwt = authHeader.substring(7);
         final String userEmail = jwtUtil.extractEmail(jwt);
+
+        if (jwtTokensBlackList.isBlacklisted(jwt)) {
+            response.setStatus(403);
+            response.getWriter().write(Response.builder()
+                    .message("Forbidden")
+                    .status(403)
+                    .data("Token is blacklisted")
+                    .build().toString());
+
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
@@ -56,6 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }
