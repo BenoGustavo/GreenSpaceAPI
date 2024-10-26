@@ -9,7 +9,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenspace.api.dto.responses.Response;
 import com.greenspace.api.dto.responses.ResponseError;
+import com.greenspace.api.error.http.Forbidden403Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
+import com.greenspace.api.error.http.Unauthorized401Exception;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,11 +29,17 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } catch (UsernameNotFoundException | NotFound404Exception ex) {
-            setErrorResponse(HttpServletResponse.SC_NOT_FOUND, response, "User not found", ex);
+            setErrorResponse(HttpServletResponse.SC_NOT_FOUND, response, "User not found!", ex);
         } catch (io.jsonwebtoken.MalformedJwtException ex) {
             setErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, response, "Invalid JWT token", ex);
         } catch (ServletException ex) {
             setErrorResponse(HttpServletResponse.SC_BAD_REQUEST, response, ex.getMessage(), ex);
+        } catch (Unauthorized401Exception ex) {
+            setErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, response, "You're not allowed to acess this route!",
+                    ex);
+            filterChain.doFilter(request, response);
+        } catch (Forbidden403Exception ex) {
+            setErrorResponse(HttpServletResponse.SC_FORBIDDEN, response, "Forbidden", ex);
         } catch (IOException ex) {
             setErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response, "An unexpected error occurred",
                     ex);
@@ -45,7 +53,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
             throws IOException {
         Response<Object> errorResponse = Response.builder()
                 .status(status)
-                .message(message)
+                .message("Request Failed!")
                 .error(new ResponseError(status, message, ex.getMessage()))
                 .build();
 
