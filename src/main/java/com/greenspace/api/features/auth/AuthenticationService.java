@@ -61,9 +61,14 @@ public class AuthenticationService {
             throw new BadRequest400Exception("Username already in use");
         }
 
-        if (!isUsernameValid(registerDto.getUsername())) {
+        if (!isFieldValid(registerDto.getUsername(), USERNAME_PATTERN)) {
             throw new BadRequest400Exception(
                     "Invalid username, please use only letters, numbers, dots and underscores, a maximum of 30 characters and a @ at the beginning");
+        }
+
+        // Verifica se as senhas são iguais
+        if (!registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
+            throw new BadRequest400Exception("Passwords do not match");
         }
 
         // Se a conta não está ativada, deleta o usuario e todos os tokens associados a
@@ -173,11 +178,11 @@ public class AuthenticationService {
         jwtUtil.invalidateUserToken(token);
     }
 
-    public boolean isUsernameValid(String username) {
-        if (username == null) {
+    public boolean isFieldValid(String field, Pattern pattern) {
+        if (field == null) {
             return false;
         }
-        Matcher matcher = USERNAME_PATTERN.matcher(username);
+        Matcher matcher = pattern.matcher(field);
         return matcher.matches();
     }
 
