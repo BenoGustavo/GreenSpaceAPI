@@ -1,5 +1,7 @@
 package com.greenspace.api.features.auth;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.greenspace.api.dto.RecoverPasswordRequestDTO;
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.auth.RegisterDTO;
 import com.greenspace.api.dto.email.EmailDTO;
@@ -22,6 +25,7 @@ import com.greenspace.api.features.email.EmailService;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.jwt.Jwt;
+import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 
 @Service
@@ -176,6 +180,80 @@ public class AuthenticationService {
 
         // Invalida o token do usuario
         jwtUtil.invalidateUserToken(token);
+    }
+
+    public void sendRecoverPasswordToken(String email) {
+        // Procura pelo email para enviar o token de recuperação de senha
+        UserModel user = userRepository.findByEmailAddress(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (user.getDeletedAt() != null) {
+            throw new Unauthorized401Exception("User is currently deleted user");
+        }
+
+        if (user.getIsBanned()) {
+            throw new Unauthorized401Exception("User is banned");
+        }
+
+        if (!user.getIsEmailValidated()) {
+            throw new Unauthorized401Exception("Account not verified, check your email adress or signup");
+        }
+
+        var emailContentBuilder = EmailDTO.builder()
+                .userEmail(user.getEmailAddress())
+                .subject("GreenSpace - Recuperação de senha");
+
+        TokenModel validToken = null;
+        // Procura e deleta todos os tokens de recuperação de senha já expirados
+        List<TokenModel> tokens = tokenService.findByUserIdAndTokenType(user.getId(),
+                TokenType.PASSWORD_RECOVERY);
+
+        // Verifica se o usuario ja pediu um token de recuperação de senha
+        for (TokenModel token : tokens) {
+            if (!tokenService.isTokenExpired(token)) {
+                validToken = token;
+            }
+            tokenService.deleteToken(token);
+        }
+
+        // se tiver pedido e for valido envia o mesmo token
+        if (validToken != null) {
+            EmailDTO finishedEmailContent = emailContentBuilder
+                    .message("Clique no link para recuperar sua senha: "
+                            + "http://localhost:8080/public/api/v1/auth/recover-password?token="
+                            + validToken.getToken())
+                    .build();
+
+            emailService.sendEmail(finishedEmailContent);
+
+            return;
+        }
+
+        // Se não cria um novo token e envia ao usuario
+        TokenModel token = tokenService.createVerificationToken(user, TokenType.PASSWORD_RECOVERY);
+
+        EmailDTO finishedEmailContent = emailContentBuilder
+                .message("Clique no link para recuperar sua senha: "
+                        + "http://localhost:8080/public/api/v1/auth/recover-password?token=" + token.getToken())
+                .build();
+
+        emailService.sendEmail(finishedEmailContent);
+    }
+
+    public void resetPassword(String token, RecoverPasswordRequestDTO newPassword) {
+        TokenModel verificationToken = tokenService.findByToken(token, TokenType.PASSWORD_RECOVERY);
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expired, please get a new one");
+        }
+
+        if (!newPassword.getPassword().equals(newPassword.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+
+        UserModel user = verificationToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword.getPassword()));
+        userRepository.save(user);
     }
 
     public boolean isFieldValid(String field, Pattern pattern) {

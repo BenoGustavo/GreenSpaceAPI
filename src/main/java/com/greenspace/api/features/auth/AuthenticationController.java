@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.greenspace.api.dto.RecoverPasswordRequestDTO;
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.auth.RegisterDTO;
 import com.greenspace.api.dto.auth.TokenDTO;
@@ -90,6 +91,33 @@ public class AuthenticationController {
                                 .message("Success")
                                 .status(200)
                                 .data("User successfully logged out")
+                                .build();
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/send-reset-password-token")
+        public ResponseEntity<Response<Object>> sendResetPasswordToken(@RequestParam("email") String email) {
+                authenticationService.sendRecoverPasswordToken(email);
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data("A password reset token has been sent to your email!")
+                                .build();
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/reset-password")
+        public ResponseEntity<Response<Object>> resetPassword(@RequestParam("token") String token,
+                        @RequestBody RecoverPasswordRequestDTO newPassword) {
+                authenticationService.resetPassword(token, newPassword);
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data("Password successfully reset")
                                 .build();
 
                 return ResponseEntity.ok(response);
