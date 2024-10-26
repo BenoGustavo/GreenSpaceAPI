@@ -37,7 +37,6 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
         } catch (Unauthorized401Exception ex) {
             setErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, response, "You're not allowed to acess this route!",
                     ex);
-            filterChain.doFilter(request, response);
         } catch (Forbidden403Exception ex) {
             setErrorResponse(HttpServletResponse.SC_FORBIDDEN, response, "Forbidden", ex);
         } catch (IOException ex) {
@@ -58,7 +57,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
                 .build();
 
         response.setStatus(status);
-        response.setContentType("application/json");
+        response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(convertObjectToJson(errorResponse));
         response.getWriter().flush();
         response.getWriter().close();

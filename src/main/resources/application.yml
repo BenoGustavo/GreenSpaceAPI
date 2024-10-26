@@ -3,6 +3,10 @@ spring:
     name: Green Space API
     description: Uma API desenvolvida para alimentar a rede social GreenSpace.
     version: 1
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
   config:
     import: optional:file:.env[.properties]
   app:
