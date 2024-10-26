@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.greenspace.api.dto.responses.Response;
+import com.greenspace.api.error.http.Forbidden403Exception;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -40,14 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-
-            response.setStatus(403);
-            response.getWriter().write(Response.builder()
-                    .message("Forbidden")
-                    .status(403)
-                    .data("Authorization header is missing or invalid")
-                    .build().toString());
+        if ((authHeader == null || !authHeader.startsWith("Bearer "))) {
 
             filterChain.doFilter(request, response);
             return;
@@ -57,15 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String userEmail = jwtUtil.extractEmail(jwt);
 
         if (jwtTokensBlackList.isBlacklisted(jwt)) {
-            response.setStatus(403);
-            response.getWriter().write(Response.builder()
-                    .message("Forbidden")
-                    .status(403)
-                    .data("Token is blacklisted")
-                    .build().toString());
 
-            filterChain.doFilter(request, response);
-            return;
+            throw new Forbidden403Exception("Token is blacklisted, please login again");
         }
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
