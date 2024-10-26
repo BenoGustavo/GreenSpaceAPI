@@ -8,6 +8,6 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class RecoverPasswordRequestDTO {
-    private String token;
     private String password;
+    private String confirmPassword;
 }
