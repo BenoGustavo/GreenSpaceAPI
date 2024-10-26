@@ -13,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.greenspace.api.error.filter.ExceptionHandlerFilter;
+import com.greenspace.api.features.user.UserValidationFilter;
 import com.greenspace.api.jwt.JwtAuthenticationFilter;
 
 @Configuration
@@ -26,6 +27,9 @@ public class SecurityConfiguration {
 
         @Autowired
         ExceptionHandlerFilter exceptionHandlerFilter;
+
+        @Autowired
+        UserValidationFilter userValidationFilter;
 
         private final String[] WHITE_LIST = {
                         "/api/auth/**", "/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
@@ -48,12 +52,17 @@ public class SecurityConfiguration {
                                                 .requestMatchers(WHITE_LIST).permitAll()
                                                 .requestMatchers(ONLY_ADMIN_ALLOWED_ROUTES).hasRole("ADMIN")
                                                 .anyRequest().authenticated())
+                                .securityMatcher(WHITE_LIST)
+
                                 .csrf(csrf -> csrf.disable())
+
                                 .sessionManagement(sessionManagement -> sessionManagement
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                                 .authenticationProvider(authenticationProvider)
                                 .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class)
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(userValidationFilter, JwtAuthenticationFilter.class);
 
                 return http.build();
         }
