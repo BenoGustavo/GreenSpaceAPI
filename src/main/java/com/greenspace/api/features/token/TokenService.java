@@ -1,6 +1,7 @@
 package com.greenspace.api.features.token;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,5 +63,9 @@ public class TokenService {
         }
 
         return tokenEntity;
+    }
+
+    public List<TokenModel> findByUserIdAndTokenType(UUID userId, TokenType tokenType) {
+        return tokenRepository.findByUserIdAndTokenType(userId, tokenType);
     }
 }
