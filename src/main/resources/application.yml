@@ -37,6 +37,21 @@ spring:
             enable: ${EMAIL_SMTP_STARTTLS_ENABLE:true}
   mvc:
     throw-exception-if-no-handler-found: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:  ${OAUTH2_CLIENT_ID}
+            client-secret:  ${OAUTH2_CLIENT_SECRET}
+            scope: profile, email
+            redirect-uri: "http://localhost:8080/public/api/v1/auth/oauth2/callback/google"
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
 logging:
   level:
