@@ -6,16 +6,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.greenspace.api.dto.RecoverPasswordRequestDTO;
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.auth.RegisterDTO;
+import com.greenspace.api.dto.auth.UserProfileOauth2GmailDTO;
 import com.greenspace.api.dto.email.EmailDTO;
 import com.greenspace.api.enums.PermissionLevel;
 import com.greenspace.api.enums.TokenType;
@@ -43,8 +56,81 @@ public class AuthenticationService {
     @Autowired
     private Jwt jwtUtil;
 
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String clientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
+
     private static final String USERNAME_REGEX = "@([A-Za-z0-9._]{1,30})";
     private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_REGEX);
+
+    ////////////////
+    // OAUTH2//
+    //////////////
+
+    // Pegar o token de acesso do google através da autorização OAuth2
+    private String getOauthAccessTokenGoogle(String code) {
+        // Cria um objeto RestTemplate para fazer requisições HTTP
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        // Adiciona os parametros necessários para pegar o token de acesso
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("redirect_uri", redirectUri);
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile");
+        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email");
+        params.add("scope", "openid");
+        params.add("grant_type", "authorization_code");
+
+        // Cria uma entidade HTTP com os parametros e headers
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
+
+        String url = "https://oauth2.googleapis.com/token";
+        String response = restTemplate.postForObject(url, requestEntity, String.class);
+
+        // Pega o token de acesso do objeto JSON
+        JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject();
+        String accessToken = jsonObject.get("access_token").getAsString();
+
+        // #TODO - Remover QUANDO NÃO FOR MAIS NECESSÁRIO
+        System.out.println("\n\nOAUTHOBJECT: " + getProfileDetailsGoogle(accessToken) + "\n\n");
+        System.out.println("\n\nToken: " + accessToken + "\n\n");
+
+        return accessToken;
+    }
+
+    // Recolhe as informações do perfil do usuario do google
+    public UserProfileOauth2GmailDTO getProfileDetailsGoogle(String code) {
+        String accessToken = getOauthAccessTokenGoogle(code);
+
+        // Cria um objeto RestTemplate para fazer requisições HTTP
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setBearerAuth(accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
+
+        String url = "https://www.googleapis.com/oauth2/v2/userinfo";
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+
+        // Converte o JSON para um objeto UserProfileOauth2GmailDTO
+        Gson gson = new Gson();
+        UserProfileOauth2GmailDTO userProfile = gson.fromJson(response.getBody(), UserProfileOauth2GmailDTO.class);
+
+        return userProfile;
+    }
+
+    //////////////////////////////
+    // CADASTRO PADRÃO//
+    ////////////////////////////
 
     // Cadastra o usuario na plataforma através dos meios tradicionais (Sem admin)
     public String signup(RegisterDTO registerDto) {
