@@ -73,7 +73,7 @@ public class AuthenticationService {
     //////////////
 
     // Pegar o token de acesso do google através da autorização OAuth2
-    private String getOauthAccessTokenGoogle(String code) {
+    public String getOauthAccessTokenGoogle(String code) {
         // Cria um objeto RestTemplate para fazer requisições HTTP
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -108,8 +108,7 @@ public class AuthenticationService {
     }
 
     // Recolhe as informações do perfil do usuario do google
-    public UserProfileOauth2GmailDTO getProfileDetailsGoogle(String code) {
-        String accessToken = getOauthAccessTokenGoogle(code);
+    public UserProfileOauth2GmailDTO getProfileDetailsGoogle(String accessToken) {
 
         // Cria um objeto RestTemplate para fazer requisições HTTP
         RestTemplate restTemplate = new RestTemplate();

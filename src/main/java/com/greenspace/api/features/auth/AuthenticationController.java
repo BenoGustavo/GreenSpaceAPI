@@ -39,7 +39,8 @@ public class AuthenticationController {
                         @RequestParam("scope") String scope, @RequestParam("authuser") String authUser,
                         @RequestParam("prompt") String prompt) {
 
-                Object userProfile = authenticationService.getProfileDetailsGoogle(code);
+                String acessToken = authenticationService.getOauthAccessTokenGoogle(code);
+                Object userProfile = authenticationService.getProfileDetailsGoogle(acessToken);
 
                 Response<Object> response = Response.builder()
                                 .message("Success")
