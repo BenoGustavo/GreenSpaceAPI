@@ -101,10 +101,6 @@ public class AuthenticationService {
         JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject();
         String accessToken = jsonObject.get("access_token").getAsString();
 
-        // #TODO - Remover QUANDO NÃO FOR MAIS NECESSÁRIO
-        System.out.println("\n\nOAUTHOBJECT: " + getProfileDetailsGoogle(accessToken) + "\n\n");
-        System.out.println("\n\nToken: " + accessToken + "\n\n");
-
         return accessToken;
     }
 
