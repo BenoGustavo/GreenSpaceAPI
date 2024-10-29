@@ -33,9 +33,11 @@ public class AuthenticationController {
         @Autowired
         private Jwt jwtUtil;
 
-        // OAUTH2
+        ////////////////
+        // OAUTH2//
+        //////////////
         @GetMapping("/oauth2/callback/google")
-        public ResponseEntity<Response<Object>> validateGoogleProfile(@RequestParam("code") String code,
+        public ResponseEntity<Response<Object>> getGmailProfile(@RequestParam("code") String code,
                         @RequestParam("scope") String scope, @RequestParam("authuser") String authUser,
                         @RequestParam("prompt") String prompt) {
 
@@ -51,6 +53,9 @@ public class AuthenticationController {
                 return ResponseEntity.ok(response);
         }
 
+        ///////////////
+        // Normal//
+        ////////////
         @PostMapping("/signup")
         public ResponseEntity<Response<Object>> signup(@RequestBody RegisterDTO registerDto)
                         throws IllegalArgumentException {

@@ -2,6 +2,7 @@ package com.greenspace.api.features.auth;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,6 +124,15 @@ public class AuthenticationService {
         // Converte o JSON para um objeto UserProfileOauth2GmailDTO
         Gson gson = new Gson();
         UserProfileOauth2GmailDTO userProfile = gson.fromJson(response.getBody(), UserProfileOauth2GmailDTO.class);
+
+        // Verifica se o usuario ja existe no banco de dados
+        Optional<UserModel> userModelFromDatabase = userRepository.findByEmailAddress(userProfile.getEmail());
+
+        if (userModelFromDatabase.isPresent() || !userModelFromDatabase.isEmpty()) {
+            userProfile.setEmailAlreadyRegistered(true);
+        } else {
+            userProfile.setEmailAlreadyRegistered(false);
+        }
 
         return userProfile;
     }
