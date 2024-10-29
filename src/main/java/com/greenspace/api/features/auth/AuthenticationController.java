@@ -33,6 +33,23 @@ public class AuthenticationController {
         @Autowired
         private Jwt jwtUtil;
 
+        // OAUTH2
+        @GetMapping("/oauth2/callback/google")
+        public ResponseEntity<Response<Object>> validateGoogleProfile(@RequestParam("code") String code,
+                        @RequestParam("scope") String scope, @RequestParam("authuser") String authUser,
+                        @RequestParam("prompt") String prompt) {
+
+                Object userProfile = authenticationService.getProfileDetailsGoogle(code);
+
+                Response<Object> response = Response.builder()
+                                .message("Success")
+                                .status(200)
+                                .data(userProfile)
+                                .build();
+
+                return ResponseEntity.ok(response);
+        }
+
         @PostMapping("/signup")
         public ResponseEntity<Response<Object>> signup(@RequestBody RegisterDTO registerDto)
                         throws IllegalArgumentException {
