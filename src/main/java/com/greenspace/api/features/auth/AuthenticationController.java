@@ -1,6 +1,7 @@
 package com.greenspace.api.features.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,26 @@ public class AuthenticationController {
 
         @Autowired
         private Jwt jwtUtil;
+
+        @Value("${spring.security.oauth2.client.registration.google.client-id}")
+        private String clientId;
+
+        @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+        private String redirectUri;
+
+        ///////////////
+        // TESTING//
+        //////////////
+
+        @GetMapping("/oauth2/testing")
+        public String oauthTestingPage() {
+
+                String googleButton = "<a href=\"https://accounts.google.com/o/oauth2/v2/auth?redirect_uri="
+                                + redirectUri + "&response_type=code&client_id=" + clientId
+                                + "&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline\">Sign in with Google</a>";
+
+                return googleButton;
+        }
 
         ////////////////
         // OAUTH2//
