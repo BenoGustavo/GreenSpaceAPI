@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartException;
 import com.greenspace.api.dto.responses.Response;
 import com.greenspace.api.dto.responses.ResponseError;
 import com.greenspace.api.error.http.BadRequest400Exception;
+import com.greenspace.api.error.http.Conflict409Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.error.http.Unauthorized401Exception;
 
@@ -31,6 +32,16 @@ public class GlobalExceptionHandler {
 
                 Response<Object> responseBody = Response.builder()
                                 .message("Bad Request!").error(error).status(ex.getCode()).build();
+
+                return ResponseEntity.status(ex.getCode()).body(responseBody);
+        }
+
+        @ExceptionHandler(Conflict409Exception.class)
+        public ResponseEntity<Response<Object>> handleConflictRequests(Conflict409Exception ex) {
+
+                ResponseError error = new ResponseError(ex.getCode(), ex.getMessage());
+                Response<Object> responseBody = Response.builder()
+                                .message("Conflict").error(error).status(ex.getCode()).build();
 
                 return ResponseEntity.status(ex.getCode()).body(responseBody);
         }
