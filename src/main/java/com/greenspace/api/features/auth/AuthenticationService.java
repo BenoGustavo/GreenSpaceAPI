@@ -34,8 +34,9 @@ import com.greenspace.api.dto.email.EmailDTO;
 import com.greenspace.api.enums.PermissionLevel;
 import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
+import com.greenspace.api.error.http.Conflict409Exception;
 import com.greenspace.api.error.http.Unauthorized401Exception;
-import com.greenspace.api.features.email.EmailService;
+import com.greenspace.api.features.email.EmailSender;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.jwt.Jwt;
@@ -49,7 +50,7 @@ public class AuthenticationService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private EmailService emailService;
+    private EmailSender emailSender;
     @Autowired
     private TokenService tokenService;
     @Autowired
@@ -141,19 +142,23 @@ public class AuthenticationService {
     public String signup(RegisterDTO registerDto) {
         // Procura usuario no banco de dados
         UserModel user = userRepository.findByEmailAddress(registerDto.getEmail()).orElse(null);
-        UserModel userWithUsername = userRepository.findByUsername(registerDto.getUsername()).orElse(null);
-        boolean isUsernameInUse = userWithUsername != null;
-        boolean isEmailInUse = user == null;
+
+        boolean isUsernameInUse = userRepository.existsByUsername(registerDto.getUsername());
+        boolean isEmailInUse = user != null;
         boolean isAccountActivated = user != null && user.getIsEmailValidated();
+
+        if (isAccountActivated) {
+            throw new Conflict409Exception("Account already activated");
+        }
 
         // Verifica se o email já está em uso e se a conta já está ativada
         if (isEmailInUse && isAccountActivated) {
-            throw new BadRequest400Exception("Email already in use");
+            throw new Conflict409Exception("Email already in use");
         }
 
         // Verifica se o username já está em uso
         if (isUsernameInUse && isAccountActivated) {
-            throw new BadRequest400Exception("Username already in use");
+            throw new Conflict409Exception("Username already in use");
         }
 
         if (!isFieldValid(registerDto.getUsername(), USERNAME_PATTERN)) {
@@ -198,7 +203,7 @@ public class AuthenticationService {
                 .message("Clique no link para verificar sua conta: " + verificationLink)
                 .build();
 
-        emailService.sendEmail(accountVerificationEmail);
+        emailSender.sendEmail(accountVerificationEmail);
 
         return "A email has been sent to your email address. Please verify your email address to login";
     }
@@ -315,7 +320,7 @@ public class AuthenticationService {
                             + validToken.getToken())
                     .build();
 
-            emailService.sendEmail(finishedEmailContent);
+            emailSender.sendEmail(finishedEmailContent);
 
             return;
         }
@@ -328,7 +333,7 @@ public class AuthenticationService {
                         + "http://localhost:8080/public/api/v1/auth/recover-password?token=" + token.getToken())
                 .build();
 
-        emailService.sendEmail(finishedEmailContent);
+        emailSender.sendEmail(finishedEmailContent);
     }
 
     public void resetPassword(String token, RecoverPasswordRequestDTO newPassword) {

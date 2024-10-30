@@ -44,7 +44,10 @@ public class UserModel {
     private String nickname;
     private String password;
     private String phoneNumber;
+
+    @Column(unique = true)
     private String emailAddress;
+
     private Boolean isOnline;
     private Boolean isEmailValidated;
     private Boolean isDeactivated;

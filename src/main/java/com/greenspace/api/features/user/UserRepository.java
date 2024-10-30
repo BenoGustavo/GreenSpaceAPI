@@ -30,4 +30,10 @@ public interface UserRepository extends JpaRepository<UserModel, UUID> {
     @Transactional
     @Query("UPDATE UserModel u SET u.isOnline = NOT u.isOnline WHERE u.id = :id")
     void toggleIsOnline(@Param("id") UUID id);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByEmailAddress(String emailAddress);
+
+    Optional<UserModel> findByEmailAddressAndIsEmailValidated(String email, boolean isEmailValidated);
 }
