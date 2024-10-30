@@ -46,7 +46,6 @@ public class Jwt {
      * @param env the environment properties
      * @throws RuntimeException if the JWT_SECRET_KEY is not set
      */
-    @Autowired
     public Jwt(Environment env) {
         String secretKeyString = env.getProperty("JWT_SECRET_KEY");
 
