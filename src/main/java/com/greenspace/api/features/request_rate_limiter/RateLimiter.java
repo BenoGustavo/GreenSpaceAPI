@@ -3,17 +3,17 @@ package com.greenspace.api.features.request_rate_limiter;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 
-@Service
-public class RateLimiterService {
+@Component
+public class RateLimiter {
     private final Bucket bucket;
 
-    public RateLimiterService(
+    public RateLimiter(
             @Value("${ratelimiter.capacity}") int capacity,
             @Value("${ratelimiter.refillTokens}") int refillTokens,
             @Value("${ratelimiter.refillPeriod}") int refillPeriod) {
