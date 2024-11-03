@@ -33,11 +33,11 @@ public class SecurityConfiguration {
 
         private final String[] WHITE_LIST = {
                         "/api/auth/**", "/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/swagger-ui/**", "/public/api/v1/auth/**"
+                        "/swagger-ui/**", "/api/auth/**", "/api/profile/**"
         };
 
         private final String[] AUTHENTICATED_ROUTES = {
-                        "/public/api/v1/auth/logout"
+                        "/api/auth/logout"
         };
 
         private final static String[] ONLY_ADMIN_ALLOWED_ROUTES = {

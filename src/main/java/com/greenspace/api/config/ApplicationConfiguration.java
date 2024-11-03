@@ -51,6 +51,11 @@ public class ApplicationConfiguration {
         return authProvider;
     }
 
+    @Bean // TODO: IMPLEMENTAR NOSSA PROPRIA IMAGEM DE PERFIL DEPOIS
+    public String defaultProfilePicture() {
+        return "https://www.gravatar.com/avatar/";
+    }
+
     @Bean
     BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

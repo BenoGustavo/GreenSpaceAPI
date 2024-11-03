@@ -1,7 +1,10 @@
 package com.greenspace.api.models;
 
-import java.net.URL;
+import java.sql.Timestamp;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,23 +18,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "tb_profile")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "tb_profile")
 public class ProfileModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID profileId;
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     private String bio;
 
     private String description;
 
-    private URL profilePicture;
+    private String profilePicture;
 
     private Boolean privateAccount;
+
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
+
+    private Timestamp deletedAt;
 }

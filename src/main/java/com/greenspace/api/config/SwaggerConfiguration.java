@@ -22,7 +22,7 @@ public class SwaggerConfiguration {
         private String APPLICATION_DESCRIPTION;
 
         private static final String[] END_POINTS = {
-                        "/public/api/v1/**"
+                        "/api/**"
         };
 
         @Bean
