@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 
 import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
+import com.greenspace.api.features.profile.ProfileService;
+import com.greenspace.api.features.user.UserRepository;
+import com.greenspace.api.models.ProfileModel;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 
@@ -23,6 +26,12 @@ public class TokenService {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    private ProfileService profileService;
 
     public TokenModel createVerificationToken(UserModel user, TokenType tokenType) {
         TokenModel token = TokenModel.builder()
@@ -59,7 +68,13 @@ public class TokenService {
         // If the token is for account activation, activate it
         if (tokenType == TokenType.ACCOUNT_ACTIVATION) {
             UserModel user = tokenEntity.getUser();
+
+            // Ativa a conta e cria um perfil
             user.setIsEmailValidated(true);
+            ProfileModel userProfile = profileService.create(user);
+
+            user.setProfile(userProfile);
+            userRepository.save(user);
         }
 
         return tokenEntity;
