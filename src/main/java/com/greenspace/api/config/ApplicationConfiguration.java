@@ -1,5 +1,7 @@
 package com.greenspace.api.config;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,11 @@ public class ApplicationConfiguration {
         authProvider.setPasswordEncoder(passwordEncoder());
 
         return authProvider;
+    }
+
+    @Bean // TODO: IMPLEMENTAR NOSSA PROPRIA IMAGEM DE PERFIL DEPOIS
+    public String defaultProfilePicture() throws MalformedURLException, URISyntaxException {
+        return "https://www.gravatar.com/avatar/";
     }
 
     @Bean
