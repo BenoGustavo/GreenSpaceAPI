@@ -1,84 +1,78 @@
 spring:
-  application:
-    name: Green Space API
-    description: Uma API desenvolvida para alimentar a rede social GreenSpace.
-    version: 1
-  http:
-    encoding:
-      charset: UTF-8
-      force: true
-  config:
-    import: optional:file:.env[.properties]
-  app:
-    host: ${APP_HOST:localhost}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME:admin}
-    password: ${DATABASE_PASSWORD:admin}
-    driver-class-name: org.postgresql.Driver
-  devtools:
-    restart:
-      enabled: true
-  mail:
-    from: ${EMAIL_SMTP_USERNAME:example@gmail.com}
-    host: ${EMAIL_SMTP_HOST:smtp.example.com}
-    port: ${EMAIL_SMTP_HOST_PORT:587}
-    username: ${EMAIL_SMTP_USERNAME:example@gmail.com}
-    password: ${EMAIL_SMTP_PASSWORD:password}
-    properties:
-      mail:
-        smtp:
-          auth: ${EMAIL_SMTP_AUTH:true}
-          starttls:
-            enable: ${EMAIL_SMTP_STARTTLS_ENABLE:true}
-  mvc:
-    throw-exception-if-no-handler-found: true
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id:  ${OAUTH2_CLIENT_ID}
-            client-secret:  ${OAUTH2_CLIENT_SECRET}
-            scope: profile, email
-            redirect-uri: "http://localhost:8080/public/api/v1/auth/oauth2/callback/google"
-            client-name: Google
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+    application:
+        name: Green Space API
+        description: Uma API desenvolvida para alimentar a rede social GreenSpace.
+        version: 1
+    config:
+        import: optional:file:.env[.properties]
+    app:
+        host: ${APP_HOST:localhost}
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+    datasource:
+        url: ${DATABASE_URL}
+        username: ${DATABASE_USERNAME:admin}
+        password: ${DATABASE_PASSWORD:admin}
+        driver-class-name: org.postgresql.Driver
+    devtools:
+        restart:
+            enabled: true
+    mail:
+        from: ${EMAIL_SMTP_USERNAME:example@gmail.com}
+        host: ${EMAIL_SMTP_HOST:smtp.example.com}
+        port: ${EMAIL_SMTP_HOST_PORT:587}
+        username: ${EMAIL_SMTP_USERNAME:example@gmail.com}
+        password: ${EMAIL_SMTP_PASSWORD:password}
+        properties:
+            mail:
+                smtp:
+                    auth: ${EMAIL_SMTP_AUTH:true}
+                    starttls:
+                        enable: ${EMAIL_SMTP_STARTTLS_ENABLE:true}
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: ${OAUTH2_CLIENT_ID}
+                        client-secret: ${OAUTH2_CLIENT_SECRET}
+                        scope: profile, email
+                        redirect-uri: "http://localhost:8080/public/api/v1/auth/oauth2/callback/google"
+                        client-name: Google
+                provider:
+                    google:
+                        authorization-uri: https://accounts.google.com/o/oauth2/auth
+                        token-uri: https://oauth2.googleapis.com/token
+                        user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
 logging:
-  level:
-    org:
-      springframework:
-        core:
-          env: DEBUG
-        jdbc:
-          core: DEBUG
-    com:
-      zaxxer:
-        hikari: DEBUG
+    level:
+        org:
+            springframework:
+                core:
+                    env: DEBUG
+                jdbc:
+                    core: DEBUG
+        com:
+            zaxxer:
+                hikari: DEBUG
 
 ratelimiter:
-  capacity: ${RATE_LIMITER_CAPACITY:10}
-  refillTokens: ${RATE_LIMITER_REFILL_TOKENS:10}
-  refillPeriod: ${RATE_LIMITER_REFILL_PERIOD:1}
+    capacity: ${RATE_LIMITER_CAPACITY:10}
+    refillTokens: ${RATE_LIMITER_REFILL_TOKENS:10}
+    refillPeriod: ${RATE_LIMITER_REFILL_PERIOD:1}
 
 verification:
-  token:
-    expiry:
-      hours: 24
+    token:
+        expiry:
+            hours: 24
 
 jakarta:
-  persistence:
-    jdbc:
-      url: ${DATABASE_URL}
+    persistence:
+        jdbc:
+            url: ${DATABASE_URL}
 
 hibernate:
-  dialect: org.hibernate.dialect.PostgreSQLDialect
+    dialect: org.hibernate.dialect.PostgreSQLDialect
