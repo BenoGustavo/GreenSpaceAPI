@@ -196,4 +196,15 @@ public class Jwt {
     public boolean validateToken(String token, String username) {
         return (username.equals(extractEmail(token)) && !isTokenExpired(token));
     }
+
+    /**
+     * Compare Arg Email passed with authenticated user email.
+     *
+     * @param emailAddress A user Email Address
+     * @return if email match then returns true, otherwise false
+     */
+    public Boolean isUserOwner(String emailAddress) {
+        String currentUserEmail = getCurrentUserEmail();
+        return currentUserEmail.equals(emailAddress);
+    }
 }
