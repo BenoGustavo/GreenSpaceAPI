@@ -135,7 +135,7 @@ public class AuthenticationService {
     }
 
     //////////////////////////////
-    // CADASTRO PADRÃO//
+    // CADASTRO PADRÃO///////////
     ////////////////////////////
 
     // Cadastra o usuario na plataforma através dos meios tradicionais (Sem admin)
@@ -194,7 +194,7 @@ public class AuthenticationService {
 
         // Deve ser mudado futuramente indexando para o front-end que ira fazer a
         // requisição para o back-end
-        String verificationLink = "http://localhost:8080/public/api/v1/auth/verify-account?token="
+        String verificationLink = "http://localhost:8080/api/auth/verify-account?token="
                 + tokenService.createVerificationToken(newUser, TokenType.ACCOUNT_ACTIVATION).getToken();
 
         EmailDTO accountVerificationEmail = EmailDTO.builder()
@@ -316,7 +316,7 @@ public class AuthenticationService {
         if (validToken != null) {
             EmailDTO finishedEmailContent = emailContentBuilder
                     .message("Clique no link para recuperar sua senha: "
-                            + "http://localhost:8080/public/api/v1/auth/recover-password?token="
+                            + "http://localhost:8080/api/auth/recover-password?token="
                             + validToken.getToken())
                     .build();
 
@@ -330,7 +330,7 @@ public class AuthenticationService {
 
         EmailDTO finishedEmailContent = emailContentBuilder
                 .message("Clique no link para recuperar sua senha: "
-                        + "http://localhost:8080/public/api/v1/auth/recover-password?token=" + token.getToken())
+                        + "http://localhost:8080/api/auth/recover-password?token=" + token.getToken())
                 .build();
 
         emailSender.sendEmail(finishedEmailContent);

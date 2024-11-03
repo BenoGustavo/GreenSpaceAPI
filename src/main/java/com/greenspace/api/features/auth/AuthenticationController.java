@@ -23,7 +23,7 @@ import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 
 @RestController
-@RequestMapping("/public/api/v1/auth")
+@RequestMapping("/api/auth")
 public class AuthenticationController {
         @Autowired
         private AuthenticationService authenticationService;
