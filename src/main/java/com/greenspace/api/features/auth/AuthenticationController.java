@@ -85,11 +85,11 @@ public class AuthenticationController {
 
                 Response<Object> response = Response.builder()
                                 .message("Success")
-                                .status(200)
+                                .status(201)
                                 .data(confirmationMessage)
                                 .build();
 
-                return ResponseEntity.ok(response);
+                return ResponseEntity.status(201).body(response);
         }
 
         @GetMapping("/verify-account")
