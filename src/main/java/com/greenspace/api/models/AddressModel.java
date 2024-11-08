@@ -1,6 +1,10 @@
 package com.greenspace.api.models;
 
+import java.sql.Timestamp;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,8 +27,8 @@ public class AddressModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID addressId;
+    @Column(updatable = false, nullable = false, name = "id")
+    private UUID id;
 
     private String street;
     private String city;
@@ -32,4 +36,12 @@ public class AddressModel {
     private String postalCode;
     private String country;
     private Boolean isValidated;
+
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
+
+    private Timestamp deletedAt;
 }
