@@ -29,8 +29,8 @@ public class PermissionModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID permissionId;
+    @Column(updatable = false, nullable = false, name = "id")
+    private UUID id;
 
     private String permissionsName;
     private String description;

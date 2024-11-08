@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.greenspace.api.enums.PermissionLevel;
 
 import jakarta.persistence.Column;
@@ -44,9 +45,11 @@ public class UserModel {
     private String username;
 
     private String nickname;
-    private String password;
-    private String phoneNumber;
 
+    @JsonIgnore
+    private String password;
+
+    private String phoneNumber;
     @Column(unique = true)
     private String emailAddress;
 

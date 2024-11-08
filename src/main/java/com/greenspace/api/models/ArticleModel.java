@@ -31,8 +31,8 @@ public class ArticleModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID articleId;
+    @Column(updatable = false, nullable = false, name = "id")
+    private UUID id;
 
     private String title;
 

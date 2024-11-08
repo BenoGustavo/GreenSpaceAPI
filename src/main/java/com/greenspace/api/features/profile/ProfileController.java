@@ -25,6 +25,7 @@ public class ProfileController {
     public ResponseEntity<Response<Object>> update(@PathVariable UUID id, @RequestBody ProfileDTO profile) {
         Response<Object> response = Response.builder()
                 .data(profileService.update(id, profile))
+                .status(200)
                 .build();
 
         return ResponseEntity.ok(response);

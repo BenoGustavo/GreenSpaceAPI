@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.greenspace.api.models.AddressModel;
 import com.greenspace.api.models.UserModel;
 
 public interface UserRepository extends JpaRepository<UserModel, UUID> {
@@ -30,6 +31,9 @@ public interface UserRepository extends JpaRepository<UserModel, UUID> {
     @Transactional
     @Query("UPDATE UserModel u SET u.isOnline = NOT u.isOnline WHERE u.id = :id")
     void toggleIsOnline(@Param("id") UUID id);
+
+    @Query("SELECT u.address FROM UserModel u WHERE u.emailAddress = :email")
+    Optional<AddressModel> findAddressByEmailAddress(@Param("email") String email);
 
     boolean existsByUsername(String username);
 
