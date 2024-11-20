@@ -6,13 +6,15 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.greenspace.api.enums.PermissionLevel;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,10 +31,12 @@ public class PermissionModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false, name = "id")
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
-    private String permissionsName;
+    @Enumerated(EnumType.STRING)
+    private PermissionLevel name;
+
     private String description;
 
     @CreationTimestamp
@@ -40,10 +44,4 @@ public class PermissionModel {
 
     @UpdateTimestamp
     private Timestamp updatedAt;
-
-    private Timestamp deletedAt;
-
-    @ManyToOne
-    @JoinColumn(name = "created_by")
-    private UserModel createdBy;
 }
