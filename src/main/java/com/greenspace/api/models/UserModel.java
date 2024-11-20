@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.greenspace.api.enums.PermissionLevel;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,8 +55,10 @@ public class UserModel {
     private Boolean isOnline;
     private Boolean isEmailValidated;
     private Boolean isDeactivated;
-    private Boolean isBanned;
-    private PermissionLevel permissionLevel;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "permission_id")
+    private PermissionModel permissionLevel;
 
     @CreationTimestamp
     private Timestamp createdAt;
@@ -76,4 +77,8 @@ public class UserModel {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id")
     private AddressModel address;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ban_id", nullable = true)
+    private BannedUsersModel ban;
 }
