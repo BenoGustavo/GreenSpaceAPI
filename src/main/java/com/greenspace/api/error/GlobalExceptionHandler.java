@@ -1,5 +1,7 @@
 package com.greenspace.api.error;
 
+import java.time.DateTimeException;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,16 @@ import com.greenspace.api.error.http.Unauthorized401Exception;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+        @ExceptionHandler(DateTimeException.class)
+        public ResponseEntity<Response<Object>> handleDateTimeException(DateTimeException ex) {
+                ResponseError error = new ResponseError(400, ex.getMessage());
+                Response<Object> responseBody = Response.builder()
+                                .message("Invalid date time format!")
+                                .error(error).status(400).build();
+
+                return ResponseEntity.status(400).body(responseBody);
+        }
+
         /////////////////////////
         /// HTTP STATUSES///
         ////////////////////////
