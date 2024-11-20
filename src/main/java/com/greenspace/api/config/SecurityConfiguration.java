@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -17,23 +18,24 @@ import com.greenspace.api.features.user.UserValidationFilter;
 import com.greenspace.api.jwt.JwtAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfiguration {
 
         @Autowired
-        AuthenticationProvider authenticationProvider;
+        private AuthenticationProvider authenticationProvider;
 
         @Autowired
-        JwtAuthenticationFilter jwtAuthenticationFilter;
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
         @Autowired
-        ExceptionHandlerFilter exceptionHandlerFilter;
+        private ExceptionHandlerFilter exceptionHandlerFilter;
 
         @Autowired
-        UserValidationFilter userValidationFilter;
+        private UserValidationFilter userValidationFilter;
 
         private final String[] WHITE_LIST = {
                         "/api/auth/**", "/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/swagger-ui/**", "/api/auth/**", "/api/profile/**"
+                        "/swagger-ui/**", "/api/auth/**",
         };
 
         private final String[] AUTHENTICATED_ROUTES = {
@@ -41,27 +43,27 @@ public class SecurityConfiguration {
         };
 
         private final static String[] ONLY_ADMIN_ALLOWED_ROUTES = {
-                        "admin/api/v1/**"
+                        "/admin/api/**"
         };
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                                                .requestMatchers(AUTHENTICATED_ROUTES).authenticated()
                                                 .requestMatchers(WHITE_LIST).permitAll()
                                                 .requestMatchers(ONLY_ADMIN_ALLOWED_ROUTES).hasRole("ADMIN")
+                                                .requestMatchers(AUTHENTICATED_ROUTES).authenticated()
                                                 .anyRequest().authenticated())
-                                .securityMatcher(WHITE_LIST)
 
                                 .csrf(csrf -> csrf.disable())
 
                                 .sessionManagement(sessionManagement -> sessionManagement
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                                 .authenticationProvider(authenticationProvider)
-                                .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class)
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(exceptionHandlerFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
                                 .addFilterAfter(userValidationFilter, JwtAuthenticationFilter.class);
 
                 return http.build();
