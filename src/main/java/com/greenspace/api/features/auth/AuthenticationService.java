@@ -39,7 +39,11 @@ import com.greenspace.api.error.http.Unauthorized401Exception;
 import com.greenspace.api.features.email.EmailSender;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
+import com.greenspace.api.features.user.banned.BannedUsersRepository;
+import com.greenspace.api.features.user.permissions.PermissionsRepository;
 import com.greenspace.api.jwt.Jwt;
+import com.greenspace.api.models.BannedUsersModel;
+import com.greenspace.api.models.PermissionModel;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 
@@ -57,6 +61,10 @@ public class AuthenticationService {
     private AuthenticationManager authenticationManager;
     @Autowired
     private Jwt jwtUtil;
+    @Autowired
+    private PermissionsRepository permissionsRepository;
+    @Autowired
+    private BannedUsersRepository banRepository;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
@@ -178,7 +186,11 @@ public class AuthenticationService {
             userRepository.delete(user);
         }
 
-        UserModel userEntity = UserModel.builder()
+        PermissionModel userPermissionEntity = permissionsRepository.findByName(PermissionLevel.ROLE_USER).orElseThrow(
+                () -> new BadRequest400Exception("Basic user permission not found, please contact the administrator"));
+
+        UserModel userEntity;
+        userEntity = UserModel.builder()
                 .username(registerDto.getUsername())
                 .nickname(registerDto.getNickname())
                 .emailAddress(registerDto.getEmail())
@@ -186,8 +198,7 @@ public class AuthenticationService {
                 .isOnline(false)
                 .isEmailValidated(false)
                 .isDeactivated(false)
-                .isBanned(false)
-                .permissionLevel(PermissionLevel.USER)
+                .permissionLevel(userPermissionEntity)
                 .build();
 
         UserModel newUser = userRepository.save(userEntity);
@@ -228,6 +239,11 @@ public class AuthenticationService {
         // Procura o usuario no banco de dados
         UserModel user = userRepository.findByEmailAddress(loginDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (user.getBan() != null) {
+            BannedUsersModel banRecord = banRepository.findByUserEmailAddress(user.getEmailAddress()).get();
+            throw new Unauthorized401Exception("User is banned - REASON: " + banRecord.getReason());
+        }
 
         // Verifica se o usuario ja ativou sua conta
         if (!user.getIsEmailValidated()) {
@@ -287,7 +303,7 @@ public class AuthenticationService {
             throw new Unauthorized401Exception("User is currently deleted user");
         }
 
-        if (user.getIsBanned()) {
+        if (user.getBan() != null) {
             throw new Unauthorized401Exception("User is banned");
         }
 

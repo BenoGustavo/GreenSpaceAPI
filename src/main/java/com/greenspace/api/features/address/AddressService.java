@@ -33,6 +33,11 @@ public class AddressService {
         // Pega o email do usuário logado
         String loggedUserEmail = jwt.getCurrentUserEmail();
 
+        // Verifica se o usuario ja tem um endereço cadastrado
+        if (userRepository.findAddressByEmailAddress(loggedUserEmail).isPresent()) {
+            throw new BadRequest400Exception("User with email " + loggedUserEmail + " already has an address");
+        }
+
         if (!isValidBrazilianZipCode(addressDto.getPostalCode())) {
             throw new BadRequest400Exception("Invalid Brazilian zip code syntax, it should be XXXXX-XXX received "
                     + addressDto.getPostalCode());
