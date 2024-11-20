@@ -1,5 +1,6 @@
 package com.greenspace.api.enums;
 
 public enum PermissionLevel {
-    USER, ADMIN
+    ROLE_USER,
+    ROLE_ADMIN
 }
