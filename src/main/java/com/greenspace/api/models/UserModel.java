@@ -56,7 +56,7 @@ public class UserModel {
     private Boolean isEmailValidated;
     private Boolean isDeactivated;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "permission_id")
     private PermissionModel permissionLevel;
 
