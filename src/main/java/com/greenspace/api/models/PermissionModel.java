@@ -35,6 +35,7 @@ public class PermissionModel {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
+    @Column(unique = true, nullable = false)
     private PermissionLevel name;
 
     private String description;
