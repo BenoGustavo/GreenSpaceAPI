@@ -83,4 +83,40 @@ public class AdminUser {
                     "\n\nSEED ADMIN LOG MESSAGE:\n" + userRepository.save(adminUser) + "\n ADMIN USER CREATED!");
         };
     }
+
+    @Bean
+    @Order(3)
+    public CommandLineRunner seedMachineUser() {
+        return args -> {
+            UserModel machineUser = UserModel.builder()
+                    .emailAddress("machine@scheduled.com")
+                    .username("machine")
+                    .nickname("machine")
+                    .password(passwordEncoder.encode(
+                            "1jATyI8H$q6fi*KlOdj4e&DC^V~pL)ZJHAFYcX1KP:xo1i8"))
+                    .isEmailValidated(true)
+                    .isDeactivated(false)
+                    .isOnline(false)
+                    .permissionLevel(permissionsRepository.findByName(PermissionLevel.ROLE_ADMIN).orElse(null))
+                    .build();
+
+            if (machineUser.getPermissionLevel() == null) {
+                System.out.println("\n\nMACHINE USER CREATION FAILED! ADMIN PERMISSION LEVEL NOT FOUND!\n\n");
+                return;
+            }
+
+            if (userRepository.findByEmailAddress(machineUser.getEmailAddress()).isPresent()) {
+                System.out.println("\n\nMACHINE USER ALREADY EXISTS! EMAIL ADDRESS ALREADY IN USE!\n\n");
+                return;
+            }
+            if (userRepository.findByUsername(machineUser.getUsername()).isPresent()) {
+                System.out.println("\n\nMACHINE USER ALREADY EXISTS! USERNAME ALREADY IN USE!\n\n");
+                return;
+            }
+
+            System.out.println(
+                    "\n\nSEED MACHINE USER LOG MESSAGE:\n" + userRepository.save(machineUser)
+                            + "\n MACHINE USER USER CREATED!");
+        };
+    }
 }
