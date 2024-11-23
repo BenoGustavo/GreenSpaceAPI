@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greenspace.api.dto.profile.UserUpdateDTO;
 import com.greenspace.api.dto.responses.Response;
 import com.greenspace.api.models.UserModel;
 
@@ -32,12 +31,38 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/update-logged-user")
-    public ResponseEntity<Response<Object>> updateLoggedUser(UserUpdateDTO updatedUserUpdateDTO) {
-        UserModel updatedUser = userService.updateLoggedUser(updatedUserUpdateDTO);
+    @PatchMapping("/update-logged-user-username")
+    public ResponseEntity<Response<Object>> updateLoggedUserUsername(String newPassword) {
+        UserModel updatedUser = userService.updateLoggedUserUsername(newPassword);
 
         Response<Object> response = Response.builder()
-                .message("User updated successfully")
+                .message("Username updated successfully")
+                .status(200)
+                .data(updatedUser)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/update-logged-user-phone-number")
+    public ResponseEntity<Response<Object>> updateLoggedUserPhoneNumber(String newPhoneNumber) {
+        UserModel updatedUser = userService.updateLoggedUserPhoneNumber(newPhoneNumber);
+
+        Response<Object> response = Response.builder()
+                .message("Phone number updated successfully")
+                .status(200)
+                .data(updatedUser)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/update-logged-user-nickname")
+    public ResponseEntity<Response<Object>> updateLoggedUserNickname(String newNickname) {
+        UserModel updatedUser = userService.updateLoggedUserNickname(newNickname);
+
+        Response<Object> response = Response.builder()
+                .message("Nickname updated successfully")
                 .status(200)
                 .data(updatedUser)
                 .build();
