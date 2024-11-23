@@ -1,5 +1,5 @@
 # Start from a Maven image with OpenJDK 21
-FROM jelastic/maven:3.9.5-openjdk-21 AS build
+FROM maven:3.9.5-eclipse-temurin-21-alpine AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -24,6 +24,8 @@ WORKDIR /app
 
 # Copy the built application from the previous stage
 COPY --from=build /app/target/*.jar app.jar
+
+COPY .env .
 
 # Expose the application port
 EXPOSE 8080

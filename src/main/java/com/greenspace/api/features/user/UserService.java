@@ -2,7 +2,7 @@ package com.greenspace.api.features.user;
 
 import org.springframework.stereotype.Service;
 
-import com.greenspace.api.dto.profile.UserUpdateDTO;
+import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.UserModel;
@@ -30,28 +30,34 @@ public class UserService {
         return loggedUser;
     }
 
-    // TEM QUE ARRUMAR POR QUE ISSO DAQUI TEM QUE LANÇAR UM ERRO QUANDO NÃO PASSA
-    // #TODO
-    public UserModel updateLoggedUser(UserUpdateDTO updatedUserUpdateDTO) {
+    public UserModel updateLoggedUserUsername(String newUsername) {
         UserModel loggedUser = getLoggedUser();
 
-        if (validationUtil.isFieldValid(
-                updatedUserUpdateDTO.getUsername(),
-                validationUtil.USERNAME_PATTERN)) {
-
-            loggedUser.setUsername(updatedUserUpdateDTO.getUsername());
+        if (!validationUtil.isFieldValid(newUsername, validationUtil.USERNAME_PATTERN)) {
+            throw new BadRequest400Exception(
+                    "Invalid username, please use only letters, numbers, dots and underscores, a maximum of 30 characters and a @ at the beginning.");
         }
 
-        if (validationUtil.isFieldValid(
-                updatedUserUpdateDTO.getPhoneNumber(),
-                validationUtil.BRAZILIAM_CELLPHONE_NUMBER_PATTERN)) {
+        loggedUser.setUsername(newUsername);
+        return repository.save(loggedUser);
+    };
 
-            loggedUser.setPhoneNumber(updatedUserUpdateDTO.getPhoneNumber());
+    public UserModel updateLoggedUserPhoneNumber(String newPhoneNumber) {
+        UserModel loggedUser = getLoggedUser();
+
+        if (!validationUtil.isFieldValid(newPhoneNumber, validationUtil.BRAZILIAM_CELLPHONE_NUMBER_PATTERN)) {
+            throw new BadRequest400Exception(
+                    "Invalid phone number, please use only numbers and a maximum of 11 characters.");
         }
 
-        if (updatedUserUpdateDTO.getNickname() != null) {
-            loggedUser.setNickname(updatedUserUpdateDTO.getNickname());
-        }
+        loggedUser.setPhoneNumber(newPhoneNumber);
+        return repository.save(loggedUser);
+    }
+
+    public UserModel updateLoggedUserNickname(String newNickname) {
+        UserModel loggedUser = getLoggedUser();
+
+        loggedUser.setNickname(newNickname);
 
         return repository.save(loggedUser);
     }
