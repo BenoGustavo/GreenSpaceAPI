@@ -3,8 +3,6 @@ package com.greenspace.api.features.auth;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +44,7 @@ import com.greenspace.api.models.BannedUsersModel;
 import com.greenspace.api.models.PermissionModel;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
+import com.greenspace.api.utils.Validation;
 
 @Service
 public class AuthenticationService {
@@ -65,6 +64,8 @@ public class AuthenticationService {
     private PermissionsRepository permissionsRepository;
     @Autowired
     private BannedUsersRepository banRepository;
+    @Autowired
+    private Validation validationUtil;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
@@ -74,9 +75,6 @@ public class AuthenticationService {
 
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUri;
-
-    private static final String USERNAME_REGEX = "@([A-Za-z0-9._]{1,30})";
-    private static final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_REGEX);
 
     ////////////////
     // OAUTH2//
@@ -169,7 +167,7 @@ public class AuthenticationService {
             throw new Conflict409Exception("Username already in use");
         }
 
-        if (!isFieldValid(registerDto.getUsername(), USERNAME_PATTERN)) {
+        if (!validationUtil.isFieldValid(registerDto.getUsername(), validationUtil.USERNAME_PATTERN)) {
             throw new BadRequest400Exception(
                     "Invalid username, please use only letters, numbers, dots and underscores, a maximum of 30 characters and a @ at the beginning");
         }
@@ -366,14 +364,6 @@ public class AuthenticationService {
         UserModel user = verificationToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword.getPassword()));
         userRepository.save(user);
-    }
-
-    public boolean isFieldValid(String field, Pattern pattern) {
-        if (field == null) {
-            return false;
-        }
-        Matcher matcher = pattern.matcher(field);
-        return matcher.matches();
     }
 
     private boolean isUserOnline(UserModel user) {
