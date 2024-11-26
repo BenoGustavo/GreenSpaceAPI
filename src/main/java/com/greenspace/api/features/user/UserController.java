@@ -3,6 +3,7 @@ package com.greenspace.api.features.user;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,4 +87,32 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/send-account-reactivation-token")
+    public ResponseEntity<Response<Object>> sendAccountActivationToken(@RequestParam String accountEmail) {
+        userService.sendAccountActivationToken(accountEmail);
+
+        Response<Object> response = Response.builder()
+                .message("Account reactivation token has been sent to your email successfully!")
+                .status(201)
+                .data("Check your email address!")
+                .build();
+
+        return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/reactivate-account")
+    public ResponseEntity<Response<Object>> reactivateAccount(@RequestParam String token) {
+
+        UserModel reactivatedUser = userService.reactivateAccount(token);
+
+        Response<Object> response = Response.builder()
+                .message("Success")
+                .status(200)
+                .data(reactivatedUser)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 }

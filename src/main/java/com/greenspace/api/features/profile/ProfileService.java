@@ -87,9 +87,8 @@ public class ProfileService {
     }
 
     // ESSE METODO DESFAZ O SOFTDELETE NO PROFILE
-    public ProfileModel restoreProfile(UUID profileId) {
-        ProfileModel profile = profileRepository.findById(profileId)
-                .orElseThrow(() -> new NotFound404Exception("Profile not found with id " + profileId));
+    public ProfileModel restoreProfile(UserModel user) {
+        ProfileModel profile = user.getProfile();
 
         // Muda a data de deletado para null
         profile.setDeletedAt(null);

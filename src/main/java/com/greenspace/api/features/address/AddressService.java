@@ -116,6 +116,13 @@ public class AddressService {
         addressRepository.save(address);
     }
 
+    public void restoreSoftdeletedUserAddress(UserModel user) {
+        AddressModel address = user.getAddress();
+        address.setDeletedAt(null);
+
+        addressRepository.save(address);
+    }
+
     public AddressModel getLoggedUserAddress() {
         String userEmail = jwt.getCurrentUserEmail();
 

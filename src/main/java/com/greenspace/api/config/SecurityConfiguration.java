@@ -35,7 +35,8 @@ public class SecurityConfiguration {
 
         private final String[] WHITE_LIST = {
                         "/api/auth/**", "/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/swagger-ui/**", "/api/auth/**",
+                        "/swagger-ui/**", "/api/auth/**", "/api/user/reactivate-account",
+                        "/api/user/send-account-reactivation-token",
         };
 
         private final String[] AUTHENTICATED_ROUTES = {
