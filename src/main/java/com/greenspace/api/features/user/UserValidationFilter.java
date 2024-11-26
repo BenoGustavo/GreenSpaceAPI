@@ -58,6 +58,11 @@ public class UserValidationFilter extends OncePerRequestFilter {
                     throw new Unauthorized401Exception("User is banned");
                 }
             }
+
+            if (user.getIsDeactivated()) {
+                throw new Unauthorized401Exception(
+                        "Account is currently deactivated, the owner must reactivate it to continue");
+            }
         }
 
         filterChain.doFilter(request, response);
