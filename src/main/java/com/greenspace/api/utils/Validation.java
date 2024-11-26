@@ -15,6 +15,9 @@ public class Validation {
     private final String USERNAME_REGEX = "@([A-Za-z0-9._]{1,30})";
     public final Pattern USERNAME_PATTERN = Pattern.compile(USERNAME_REGEX);
 
+    private final String BRAZILIAN_ZIPCODE_REGEX = "^\\d{5}-\\d{3}$";
+    public final Pattern BRAZILIAN_ZIPCODE_PATTERN = Pattern.compile(BRAZILIAN_ZIPCODE_REGEX);
+
     public boolean isFieldValid(String field, Pattern pattern) {
         if (field == null) {
             return false;
