@@ -1,5 +1,7 @@
 package com.greenspace.api.features.address;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -109,7 +111,9 @@ public class AddressService {
                 () -> new NotFound404Exception("Address not found for user with email " + userEmail
                         + ", may the user never registered an address"));
 
-        addressRepository.softdelete(address.getId());
+        address.setDeletedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+        addressRepository.save(address);
     }
 
     public AddressModel getLoggedUserAddress() {
