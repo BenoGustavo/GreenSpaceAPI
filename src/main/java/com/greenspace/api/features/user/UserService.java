@@ -1,9 +1,15 @@
 package com.greenspace.api.features.user;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
+import com.greenspace.api.features.address.AddressService;
+import com.greenspace.api.features.profile.ProfileService;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.UserModel;
 import com.greenspace.api.utils.Validation;
@@ -14,11 +20,26 @@ public class UserService {
     private final UserRepository repository;
     private final Jwt jwtManager;
     private final Validation validationUtil;
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final AddressService addressService;
+    private final ProfileService profileService;
 
-    public UserService(UserRepository repository, Jwt jwtManager, Validation validationUtil) {
+    public UserService(
+            UserRepository repository,
+            Jwt jwtManager,
+            Validation validationUtil,
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            AddressService addressService,
+            ProfileService profileService) {
         this.repository = repository;
         this.jwtManager = jwtManager;
         this.validationUtil = validationUtil;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.addressService = addressService;
+        this.profileService = profileService;
     }
 
     public UserModel getLoggedUser() {
@@ -60,5 +81,25 @@ public class UserService {
         loggedUser.setNickname(newNickname);
 
         return repository.save(loggedUser);
+    }
+
+    // Preciso finalizar isso
+    UserModel deactivateLoggedUser(LoginDTO userCredentials) {
+        UserModel loggedUser = getLoggedUser();
+
+        if (!checkEmailAndPassword(loggedUser.getEmailAddress(), userCredentials.getPassword())) {
+            throw new BadRequest400Exception(
+                    "Can't deactivate account, wrong password or email.");
+        }
+
+        getLoggedUser().setIsDeactivated(true);
+        addressService.softdeleteLoggedUserAddress();
+        profileService.softdeleteUserProfile();
+        return repository.save(getLoggedUser());
+    }
+
+    private boolean checkEmailAndPassword(String email, String password) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return passwordEncoder.matches(password, userDetails.getPassword());
     }
 }
