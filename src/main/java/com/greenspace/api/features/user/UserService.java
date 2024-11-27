@@ -1,10 +1,21 @@
 package com.greenspace.api.features.user;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.greenspace.api.dto.auth.LoginDTO;
+import com.greenspace.api.dto.email.EmailDTO;
+import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
+import com.greenspace.api.features.address.AddressService;
+import com.greenspace.api.features.email.EmailSender;
+import com.greenspace.api.features.profile.ProfileService;
+import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.jwt.Jwt;
+import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 import com.greenspace.api.utils.Validation;
 
@@ -14,11 +25,32 @@ public class UserService {
     private final UserRepository repository;
     private final Jwt jwtManager;
     private final Validation validationUtil;
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final AddressService addressService;
+    private final ProfileService profileService;
+    private final TokenService tokenService;
+    private final EmailSender emailSender;
 
-    public UserService(UserRepository repository, Jwt jwtManager, Validation validationUtil) {
+    public UserService(
+            UserRepository repository,
+            Jwt jwtManager,
+            Validation validationUtil,
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            AddressService addressService,
+            ProfileService profileService,
+            TokenService tokenService,
+            EmailSender emailSender) {
         this.repository = repository;
         this.jwtManager = jwtManager;
         this.validationUtil = validationUtil;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.addressService = addressService;
+        this.profileService = profileService;
+        this.tokenService = tokenService;
+        this.emailSender = emailSender;
     }
 
     public UserModel getLoggedUser() {
@@ -60,5 +92,73 @@ public class UserService {
         loggedUser.setNickname(newNickname);
 
         return repository.save(loggedUser);
+    }
+
+    // Preciso finalizar isso
+    UserModel deactivateLoggedUser(LoginDTO userCredentials) {
+        UserModel loggedUser = getLoggedUser();
+
+        if (!checkEmailAndPassword(loggedUser.getEmailAddress(), userCredentials.getPassword())) {
+            throw new BadRequest400Exception(
+                    "Can't deactivate account, wrong password or email.");
+        }
+
+        getLoggedUser().setIsDeactivated(true);
+        if (loggedUser.getAddress() != null) {
+            addressService.softdeleteLoggedUserAddress();
+        }
+        if (loggedUser.getProfile() != null) {
+            profileService.softdeleteUserProfile();
+        }
+        return repository.save(getLoggedUser());
+    }
+
+    private boolean checkEmailAndPassword(String email, String password) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return passwordEncoder.matches(password, userDetails.getPassword());
+    }
+
+    public void sendAccountActivationToken(String accountEmail) {
+        UserModel user = repository.findByEmailAddress(accountEmail)
+                .orElseThrow(() -> new NotFound404Exception("User not found."));
+
+        // Verifica se a conta já está ativada
+        if (!user.getIsDeactivated()) {
+            throw new BadRequest400Exception("The account with the email " + accountEmail + " is not deactivated.");
+        }
+
+        TokenModel accountReactivationToken = tokenService.createVerificationToken(user,
+                TokenType.ACCOUNT_REACTIVATION_TOKEN);
+
+        // Criando o conteúdo do email
+        var emailContentBuilder = EmailDTO.builder()
+                .userEmail(user.getEmailAddress())
+                .subject("GreenSpace - Recuperação de senha");
+
+        // Enviar email com o token
+        EmailDTO finishedEmailContent = emailContentBuilder
+                .message("Olá, " + user.getUsername() + "!<br><br>"
+                        + "Você solicitou a reativação da sua conta no GreenSpace. Para reativá-la, clique no link abaixo:<br><br>"
+                        + "<a href='http://localhost:8080/api/user/reactivate-account?token="
+                        + accountReactivationToken.getToken() + "'>Clique aqui para reativar sua conta</a><br><br>"
+                        + "Se você não solicitou a reativação da sua conta, por favor, ignore este email.<br><br>"
+                        + "Atenciosamente, equipe GreenSpace.")
+                .build();
+
+        emailSender.sendEmail(finishedEmailContent);
+    }
+
+    public UserModel reactivateAccount(String token) {
+        TokenModel validatedToken = tokenService.findByToken(token, TokenType.ACCOUNT_REACTIVATION_TOKEN);
+        UserModel user = validatedToken.getUser();
+
+        user.setIsDeactivated(false);
+        if (user.getAddress() != null) {
+            addressService.restoreSoftdeletedUserAddress(user);
+        }
+        if (user.getProfile() != null) {
+            profileService.restoreProfile(user);
+        }
+        return repository.save(user);
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.greenspace.api.dto.profile.ProfileDTO;
 import com.greenspace.api.error.http.NotFound404Exception;
+import com.greenspace.api.features.user.UserRepository;
+import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.ProfileModel;
 import com.greenspace.api.models.UserModel;
 
@@ -15,12 +17,19 @@ import com.greenspace.api.models.UserModel;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
-
     private final String defaultProfilePicture;
+    private final Jwt jwtManager;
+    private final UserRepository userRepository;
 
-    public ProfileService(ProfileRepository profileRepository, String defaultProfilePicture) {
+    public ProfileService(
+            ProfileRepository profileRepository,
+            String defaultProfilePicture,
+            Jwt jwtManager,
+            UserRepository userRepository) {
         this.profileRepository = profileRepository;
         this.defaultProfilePicture = defaultProfilePicture;
+        this.jwtManager = jwtManager;
+        this.userRepository = userRepository;
     }
 
     public ProfileModel create(UserModel owner) {
@@ -62,9 +71,14 @@ public class ProfileService {
     }
 
     // ISSO AQUI DA SOFTDELETE NO PROFILE
-    public ProfileModel delete(UUID profileId) {
-        ProfileModel profile = profileRepository.findById(profileId)
-                .orElseThrow(() -> new NotFound404Exception("Profile not found with id " + profileId));
+    public ProfileModel softdeleteUserProfile() {
+        // Pega o usuario logado
+        String userEmail = jwtManager.getCurrentUserEmail();
+        UserModel loggedUser = userRepository.findByEmailAddress(userEmail)
+                .orElseThrow(() -> new NotFound404Exception("User not found with email " + userEmail));
+
+        ProfileModel profile = profileRepository.findById(loggedUser.getProfile().getId())
+                .orElseThrow(() -> new NotFound404Exception("Profile from the user " + userEmail + " wasn't found"));
 
         // Muda a data de deletado para a data atual
         profile.setDeletedAt(Timestamp.valueOf(LocalDateTime.now()));
@@ -73,9 +87,8 @@ public class ProfileService {
     }
 
     // ESSE METODO DESFAZ O SOFTDELETE NO PROFILE
-    public ProfileModel restoreProfile(UUID profileId) {
-        ProfileModel profile = profileRepository.findById(profileId)
-                .orElseThrow(() -> new NotFound404Exception("Profile not found with id " + profileId));
+    public ProfileModel restoreProfile(UserModel user) {
+        ProfileModel profile = user.getProfile();
 
         // Muda a data de deletado para null
         profile.setDeletedAt(null);

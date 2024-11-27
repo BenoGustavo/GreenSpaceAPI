@@ -1,7 +1,8 @@
 package com.greenspace.api.features.address;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -12,21 +13,25 @@ import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.AddressModel;
 import com.greenspace.api.models.UserModel;
+import com.greenspace.api.utils.Validation;
 
 @Service
 public class AddressService {
 
-    private static final String BRAZILIAN_ZIPCODE_REGEX = "^\\d{5}-\\d{3}$";
-    private static final Pattern BRAZILIAN_ZIPCODE_PATTERN = Pattern.compile(BRAZILIAN_ZIPCODE_REGEX);
-
     private final AddressRepository addressRepository;
     private final Jwt jwt;
     private final UserRepository userRepository;
+    private final Validation validationUtil;
 
-    public AddressService(AddressRepository addressRepository, Jwt jwt, UserRepository userRepository) {
+    public AddressService(
+            AddressRepository addressRepository,
+            Jwt jwt,
+            UserRepository userRepository,
+            Validation validation) {
         this.addressRepository = addressRepository;
         this.jwt = jwt;
         this.userRepository = userRepository;
+        this.validationUtil = validation;
     }
 
     AddressModel create(AddressDTO addressDto) {
@@ -99,6 +104,25 @@ public class AddressService {
         return addressRepository.save(existingAdress);
     }
 
+    public void softdeleteLoggedUserAddress() {
+        String userEmail = jwt.getCurrentUserEmail();
+
+        AddressModel address = userRepository.findAddressByEmailAddress(userEmail).orElseThrow(
+                () -> new NotFound404Exception("Address not found for user with email " + userEmail
+                        + ", may the user never registered an address"));
+
+        address.setDeletedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+        addressRepository.save(address);
+    }
+
+    public void restoreSoftdeletedUserAddress(UserModel user) {
+        AddressModel address = user.getAddress();
+        address.setDeletedAt(null);
+
+        addressRepository.save(address);
+    }
+
     public AddressModel getLoggedUserAddress() {
         String userEmail = jwt.getCurrentUserEmail();
 
@@ -107,11 +131,10 @@ public class AddressService {
                         + ", may the user never registered an address"));
     }
 
-    public static boolean isValidBrazilianZipCode(String zipCode) {
-        if (zipCode == null) {
-            return false;
-        }
-        return BRAZILIAN_ZIPCODE_PATTERN.matcher(zipCode).matches();
+    public boolean isValidBrazilianZipCode(String zipCode) {
+        return validationUtil.isFieldValid(
+                zipCode,
+                validationUtil.BRAZILIAN_ZIPCODE_PATTERN);
     }
 
 }

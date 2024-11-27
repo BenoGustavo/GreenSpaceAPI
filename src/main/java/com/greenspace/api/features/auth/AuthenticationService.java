@@ -243,6 +243,11 @@ public class AuthenticationService {
             throw new Unauthorized401Exception("User is banned - REASON: " + banRecord.getReason());
         }
 
+        if (user.getIsDeactivated() != null && user.getIsDeactivated()) {
+            throw new Unauthorized401Exception(
+                    "Account is currently deactivated, the owner must reactivate it to continue");
+        }
+
         // Verifica se o usuario ja ativou sua conta
         if (!user.getIsEmailValidated()) {
             throw new Unauthorized401Exception("Account not verified, check your email adress or signup");
