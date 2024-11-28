@@ -51,6 +51,7 @@ public class UserController {
     // ESSE REGEX NÃO ESTÁ FUNCIONANDO DIREITO
     @PatchMapping("/update-logged-user-phone-number")
     public ResponseEntity<Response<Object>> updateLoggedUserPhoneNumber(@RequestParam String newPhoneNumber) {
+        System.out.println("O numero novo do usuario é: " + newPhoneNumber);
         UserModel updatedUser = userService.updateLoggedUserPhoneNumber(newPhoneNumber);
 
         Response<Object> response = Response.builder()

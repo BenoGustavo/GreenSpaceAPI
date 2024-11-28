@@ -46,6 +46,8 @@ import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 import com.greenspace.api.utils.Validation;
 
+import jakarta.mail.MessagingException;
+
 @Service
 public class AuthenticationService {
     @Autowired
@@ -212,7 +214,11 @@ public class AuthenticationService {
                 .message("Clique no link para verificar sua conta: " + verificationLink)
                 .build();
 
-        emailSender.sendEmail(accountVerificationEmail);
+        try {
+            emailSender.sendEmail(accountVerificationEmail);
+        } catch (MessagingException ex) {
+            throw new BadRequest400Exception("Error sending email: " + ex.getMessage());
+        }
 
         return "A email has been sent to your email address. Please verify your email address to login";
     }
@@ -334,12 +340,14 @@ public class AuthenticationService {
         // se tiver pedido e for valido envia o mesmo token
         if (validToken != null) {
             EmailDTO finishedEmailContent = emailContentBuilder
-                    .message("Clique no link para recuperar sua senha: "
-                            + "http://localhost:8080/api/auth/recover-password?token="
-                            + validToken.getToken())
+                    .message("Token para recuperação da conta: " + validToken.getToken())
                     .build();
 
-            emailSender.sendEmail(finishedEmailContent);
+            try {
+                emailSender.sendEmail(finishedEmailContent);
+            } catch (MessagingException ex) {
+                throw new BadRequest400Exception("Error sending email: " + ex.getMessage());
+            }
 
             return;
         }
@@ -348,11 +356,14 @@ public class AuthenticationService {
         TokenModel token = tokenService.createVerificationToken(user, TokenType.PASSWORD_RECOVERY);
 
         EmailDTO finishedEmailContent = emailContentBuilder
-                .message("Clique no link para recuperar sua senha: "
-                        + "http://localhost:8080/api/auth/recover-password?token=" + token.getToken())
+                .message("Token para recuperação da conta: " + token.getToken())
                 .build();
 
-        emailSender.sendEmail(finishedEmailContent);
+        try {
+            emailSender.sendEmail(finishedEmailContent);
+        } catch (MessagingException ex) {
+            throw new BadRequest400Exception("Error sending email: " + ex.getMessage());
+        }
     }
 
     public void resetPassword(String token, RecoverPasswordRequestDTO newPassword) {

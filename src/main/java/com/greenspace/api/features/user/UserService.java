@@ -13,11 +13,14 @@ import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.features.address.AddressService;
 import com.greenspace.api.features.email.EmailSender;
 import com.greenspace.api.features.profile.ProfileService;
+import com.greenspace.api.features.token.TokenRepository;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
 import com.greenspace.api.utils.Validation;
+
+import jakarta.mail.MessagingException;
 
 @Service
 public class UserService {
@@ -31,6 +34,7 @@ public class UserService {
     private final ProfileService profileService;
     private final TokenService tokenService;
     private final EmailSender emailSender;
+    private final TokenRepository tokenRepository;
 
     public UserService(
             UserRepository repository,
@@ -41,7 +45,8 @@ public class UserService {
             AddressService addressService,
             ProfileService profileService,
             TokenService tokenService,
-            EmailSender emailSender) {
+            EmailSender emailSender,
+            TokenRepository tokenRepository) {
         this.repository = repository;
         this.jwtManager = jwtManager;
         this.validationUtil = validationUtil;
@@ -51,6 +56,7 @@ public class UserService {
         this.profileService = profileService;
         this.tokenService = tokenService;
         this.emailSender = emailSender;
+        this.tokenRepository = tokenRepository;
     }
 
     public UserModel getLoggedUser() {
@@ -76,6 +82,8 @@ public class UserService {
 
     public UserModel updateLoggedUserPhoneNumber(String newPhoneNumber) {
         UserModel loggedUser = getLoggedUser();
+
+        System.out.println(newPhoneNumber);
 
         if (!validationUtil.isFieldValid(newPhoneNumber, validationUtil.BRAZILIAM_CELLPHONE_NUMBER_PATTERN)) {
             throw new BadRequest400Exception(
@@ -103,7 +111,9 @@ public class UserService {
                     "Can't deactivate account, wrong password or email.");
         }
 
-        getLoggedUser().setIsDeactivated(true);
+        loggedUser.setIsDeactivated(true);
+        loggedUser.setIsOnline(false);
+
         if (loggedUser.getAddress() != null) {
             addressService.softdeleteLoggedUserAddress();
         }
@@ -145,7 +155,11 @@ public class UserService {
                         + "Atenciosamente, equipe GreenSpace.")
                 .build();
 
-        emailSender.sendEmail(finishedEmailContent);
+        try {
+            emailSender.sendEmail(finishedEmailContent);
+        } catch (MessagingException e) {
+            throw new BadRequest400Exception("Error sending email.");
+        }
     }
 
     public UserModel reactivateAccount(String token) {
@@ -159,6 +173,8 @@ public class UserService {
         if (user.getProfile() != null) {
             profileService.restoreProfile(user);
         }
+
+        tokenRepository.delete(validatedToken);
         return repository.save(user);
     }
 }
