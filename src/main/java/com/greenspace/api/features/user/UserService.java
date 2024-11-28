@@ -4,6 +4,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.email.EmailDTO;
@@ -11,13 +12,14 @@ import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.features.address.AddressService;
-import com.greenspace.api.features.email.EmailSender;
 import com.greenspace.api.features.profile.ProfileService;
 import com.greenspace.api.features.token.TokenRepository;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
+import com.greenspace.api.utils.EmailSender;
+import com.greenspace.api.utils.ImageUploader;
 import com.greenspace.api.utils.Validation;
 
 import jakarta.mail.MessagingException;
@@ -35,6 +37,7 @@ public class UserService {
     private final TokenService tokenService;
     private final EmailSender emailSender;
     private final TokenRepository tokenRepository;
+    private final ImageUploader imageUploader;
 
     public UserService(
             UserRepository repository,
@@ -46,7 +49,8 @@ public class UserService {
             ProfileService profileService,
             TokenService tokenService,
             EmailSender emailSender,
-            TokenRepository tokenRepository) {
+            TokenRepository tokenRepository,
+            ImageUploader imageUploader) {
         this.repository = repository;
         this.jwtManager = jwtManager;
         this.validationUtil = validationUtil;
@@ -57,6 +61,7 @@ public class UserService {
         this.tokenService = tokenService;
         this.emailSender = emailSender;
         this.tokenRepository = tokenRepository;
+        this.imageUploader = imageUploader;
     }
 
     public UserModel getLoggedUser() {
@@ -102,8 +107,20 @@ public class UserService {
         return repository.save(loggedUser);
     }
 
-    // Preciso finalizar isso
-    UserModel deactivateLoggedUser(LoginDTO userCredentials) {
+    public UserModel updateLoggedUserProfilePicture(MultipartFile file) {
+        UserModel loggedUser = getLoggedUser();
+
+        if (file.isEmpty()) {
+            throw new BadRequest400Exception("File is empty perhaps you forgot to send one?.");
+        }
+
+        String profilePictureUrl = imageUploader.uploadImage(file);
+        loggedUser.getProfile().setProfilePicture(profilePictureUrl);
+
+        return repository.save(loggedUser);
+    }
+
+    public UserModel deactivateLoggedUser(LoginDTO userCredentials) {
         UserModel loggedUser = getLoggedUser();
 
         if (!checkEmailAndPassword(loggedUser.getEmailAddress(), userCredentials.getPassword())) {
