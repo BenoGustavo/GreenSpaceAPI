@@ -34,7 +34,6 @@ import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.Conflict409Exception;
 import com.greenspace.api.error.http.Unauthorized401Exception;
-import com.greenspace.api.features.email.EmailSender;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.features.user.banned.BannedUsersRepository;
@@ -44,6 +43,7 @@ import com.greenspace.api.models.BannedUsersModel;
 import com.greenspace.api.models.PermissionModel;
 import com.greenspace.api.models.TokenModel;
 import com.greenspace.api.models.UserModel;
+import com.greenspace.api.utils.EmailSender;
 import com.greenspace.api.utils.Validation;
 
 import jakarta.mail.MessagingException;
