@@ -13,14 +13,15 @@ import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.features.address.AddressService;
+import com.greenspace.api.features.imagesManager.UserImagesService;
 import com.greenspace.api.features.profile.ProfileService;
 import com.greenspace.api.features.token.TokenRepository;
 import com.greenspace.api.features.token.TokenService;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.TokenModel;
+import com.greenspace.api.models.UserImagesModel;
 import com.greenspace.api.models.UserModel;
 import com.greenspace.api.utils.EmailSender;
-import com.greenspace.api.utils.ImageUploader;
 import com.greenspace.api.utils.Validation;
 
 import jakarta.mail.MessagingException;
@@ -38,7 +39,7 @@ public class UserService {
     private final TokenService tokenService;
     private final EmailSender emailSender;
     private final TokenRepository tokenRepository;
-    private final ImageUploader imageUploader;
+    private final UserImagesService userImagesService;
 
     public UserService(
             UserRepository repository,
@@ -51,7 +52,7 @@ public class UserService {
             TokenService tokenService,
             EmailSender emailSender,
             TokenRepository tokenRepository,
-            ImageUploader imageUploader) {
+            UserImagesService userImagesService) {
         this.repository = repository;
         this.jwtManager = jwtManager;
         this.validationUtil = validationUtil;
@@ -62,7 +63,7 @@ public class UserService {
         this.tokenService = tokenService;
         this.emailSender = emailSender;
         this.tokenRepository = tokenRepository;
-        this.imageUploader = imageUploader;
+        this.userImagesService = userImagesService;
     }
 
     public UserModel getLoggedUser() {
@@ -115,8 +116,8 @@ public class UserService {
             throw new BadRequest400Exception("File is empty perhaps you forgot to send one?.");
         }
 
-        String profilePictureUrl = imageUploader.uploadImage(file, loggedUser.getId(), ImageType.PROFILE_PICTURE);
-        loggedUser.getProfile().setProfilePicture(profilePictureUrl);
+        UserImagesModel userImage = userImagesService.uploadProfilePicture(file, loggedUser, ImageType.PROFILE_PICTURE);
+        loggedUser.getProfile().setProfilePicture(userImage.getImageUrl());
 
         return repository.save(loggedUser);
     }
