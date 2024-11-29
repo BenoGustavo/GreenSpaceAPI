@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.email.EmailDTO;
+import com.greenspace.api.enums.ImageType;
 import com.greenspace.api.enums.TokenType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.error.http.NotFound404Exception;
@@ -114,7 +115,7 @@ public class UserService {
             throw new BadRequest400Exception("File is empty perhaps you forgot to send one?.");
         }
 
-        String profilePictureUrl = imageUploader.uploadImage(file);
+        String profilePictureUrl = imageUploader.uploadImage(file, loggedUser.getId(), ImageType.PROFILE_PICTURE);
         loggedUser.getProfile().setProfilePicture(profilePictureUrl);
 
         return repository.save(loggedUser);
