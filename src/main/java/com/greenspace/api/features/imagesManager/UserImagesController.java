@@ -1,0 +1,39 @@
+package com.greenspace.api.features.imagesManager;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.greenspace.api.dto.responses.Response;
+import com.greenspace.api.enums.ImageType;
+import com.greenspace.api.models.UserImagesModel;
+
+@RestController
+@RequestMapping("/api/images")
+public class UserImagesController {
+    private final UserImagesService userImagesService;
+
+    public UserImagesController(UserImagesService userImagesService) {
+        this.userImagesService = userImagesService;
+    }
+
+    @RequestMapping(value = "/upload", method = RequestMethod.POST, consumes = "multipart/form-data")
+    public ResponseEntity<Response<Object>> uploadNewPicture(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("pictureName") String pictureName) {
+
+        UserImagesModel newImage = userImagesService.uploadPicture(file, pictureName, ImageType.ARTICLE_PICTURE);
+
+        Response<Object> response = Response.builder()
+                .message("Image uploaded successfully")
+                .status(201)
+                .data(newImage)
+                .build();
+
+        return ResponseEntity.status(201).body(response);
+    }
+
+}
