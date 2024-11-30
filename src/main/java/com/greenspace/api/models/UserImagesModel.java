@@ -44,7 +44,7 @@ public class UserImagesModel {
     @Column(nullable = false, updatable = false)
     private ImageType imageType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private UserModel user;
 

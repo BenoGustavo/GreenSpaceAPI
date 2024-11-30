@@ -1,9 +1,11 @@
 package com.greenspace.api.features.imagesManager;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,4 +55,16 @@ public class UserImagesController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Response<Object>> getPictureById(@PathVariable("id") UUID id) {
+        UserImagesModel userImage = userImagesService.getUserImageById(id);
+
+        Response<Object> response = Response.builder()
+                .message("Image retrieved successfully")
+                .status(200)
+                .data(userImage)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }

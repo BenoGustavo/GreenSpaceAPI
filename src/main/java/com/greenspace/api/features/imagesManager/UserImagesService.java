@@ -1,6 +1,7 @@
 package com.greenspace.api.features.imagesManager;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,6 +10,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.greenspace.api.dto.UserImagesDTO;
 import com.greenspace.api.enums.ImageType;
 import com.greenspace.api.error.http.BadRequest400Exception;
+import com.greenspace.api.error.http.NotFound404Exception;
 import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.UserImagesModel;
@@ -106,5 +108,10 @@ public class UserImagesService {
 
                 return userImagesRepository.findUserImagesWithoutUserInfo(loggedUser.getId(),
                                 ImageType.ARTICLE_PICTURE);
+        }
+
+        public UserImagesModel getUserImageById(UUID id) {
+                return userImagesRepository.findById(id).orElseThrow(
+                                () -> new NotFound404Exception("Image not found on database"));
         }
 }
