@@ -1,12 +1,16 @@
 package com.greenspace.api.features.imagesManager;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.greenspace.api.dto.UserImagesDTO;
 import com.greenspace.api.dto.responses.Response;
 import com.greenspace.api.enums.ImageType;
 import com.greenspace.api.models.UserImagesModel;
@@ -34,6 +38,19 @@ public class UserImagesController {
                 .build();
 
         return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<Response<Object>> getAllLoggedUserPictures() {
+        List<UserImagesDTO> userImages = userImagesService.getAllUserImages();
+
+        Response<Object> response = Response.builder()
+                .message("Images retrieved successfully")
+                .status(200)
+                .data(userImages)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
 }
