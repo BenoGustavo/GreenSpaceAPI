@@ -19,10 +19,12 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -38,10 +40,11 @@ public class UserImagesModel {
     @Column(nullable = false, updatable = false)
     private String imageName;
 
+    // @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
     private ImageType imageType;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserModel user;
 
