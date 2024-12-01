@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.greenspace.api.enums.ImageType;
 import com.greenspace.api.error.http.BadRequest400Exception;
 import com.greenspace.api.models.UserModel;
@@ -44,12 +45,12 @@ public class ImageUploader {
         }
     }
 
-    // public void removeImage(String publicId) {
-    // try {
-    // cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-    // } catch (IOException e) {
-    // throw new BadRequest400Exception("Failed to remove image: " +
-    // e.getMessage());
-    // }
-    // }
+    public void removeImage(String publicId) {
+        try {
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (IOException e) {
+            throw new BadRequest400Exception("Failed to remove image: " +
+                    e.getMessage());
+        }
+    }
 }
