@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,6 +64,18 @@ public class UserImagesController {
                 .message("Image retrieved successfully")
                 .status(200)
                 .data(userImage)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response<Object>> deletePictureById(@PathVariable("id") UUID id) {
+        userImagesService.deleteUserImageById(id);
+
+        Response<Object> response = Response.builder()
+                .message("Image deleted successfully")
+                .status(200)
                 .build();
 
         return ResponseEntity.ok(response);
