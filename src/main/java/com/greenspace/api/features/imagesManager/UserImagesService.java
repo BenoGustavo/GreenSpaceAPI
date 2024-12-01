@@ -114,4 +114,22 @@ public class UserImagesService {
                 return userImagesRepository.findById(id).orElseThrow(
                                 () -> new NotFound404Exception("Image not found on database"));
         }
+
+        public void deleteUserImageById(UUID id) {
+                UserModel loggedUser = userRepository.findByEmailAddress(
+                                jwtManager.getCurrentUserEmail()).orElseThrow(
+                                                () -> new BadRequest400Exception(
+                                                                "Logged user not found on database, how do you even got here?"));
+
+                UserImagesModel imageToDelete = userImagesRepository.findById(id).orElseThrow(
+                                () -> new NotFound404Exception("Image not found on database"));
+
+                // Valida se o usuario é o dono da imagem!
+                if (!imageToDelete.getUser().getId().equals(loggedUser.getId())) {
+                        throw new BadRequest400Exception("You can't delete an image that is not yours");
+                }
+
+                userImagesRepository.deleteById(id);
+                imageUploader.removeImage(imageToDelete.getImageName());
+        }
 }
