@@ -132,4 +132,41 @@ public class UserImagesService {
                 userImagesRepository.deleteById(id);
                 imageUploader.removeImage(imageToDelete.getImageName());
         }
+
+        @SuppressWarnings("unchecked") // Unckecked por conta do cloudinary que retorna um map de string e object
+        public String registerDefaultProfilePicture(MultipartFile file) {
+                UserModel loggedUser = userRepository.findByEmailAddress(
+                                jwtManager.getCurrentUserEmail()).orElseThrow(
+                                                () -> new BadRequest400Exception(
+                                                                "Logged user not found on database, how do you even got here?"));
+
+                var options = ObjectUtils.asMap(
+                                "public_id", "default_profile_picture",
+                                "use_filename", true,
+                                "unique_filename", false,
+                                "overwrite", true);
+
+                // faz upload da nova foto padrao
+                String profilePictureUrl = imageUploader.uploadImage(
+                                file, loggedUser,
+                                ImageType.DEFAULT_PICTURE,
+                                "default_profile_picture", options);
+
+                // cria a imagem padrao no banco
+                UserImagesModel defaultUserImage = UserImagesModel.builder()
+                                .user(loggedUser)
+                                .imageUrl(profilePictureUrl)
+                                .imageType(ImageType.DEFAULT_PICTURE)
+                                .imageName(options.get("public_id").toString())
+                                .build();
+
+                // Verifica se ja existe uma imagem padrao no banco e deleta caso exista
+                if (userImagesRepository.existsByImageName("default_profile_picture")) {
+                        userImagesRepository.deleteByImageName("default_profile_picture");
+                }
+
+                userImagesRepository.save(defaultUserImage);
+
+                return profilePictureUrl;
+        }
 }

@@ -31,4 +31,14 @@ public interface UserImagesRepository extends JpaRepository<UserImagesModel, UUI
         List<UserImagesDTO> findUserImagesWithoutUserInfo(
                         @Param("userId") UUID userId,
                         @Param("imageType") ImageType imageType);
+
+        Boolean existsByImageName(String imageName);
+
+        UserImagesModel findByImageName(String imageName);
+
+        @Modifying
+        @Transactional
+        void deleteByImageName(String imageName);
+
+        List<UserImagesModel> findByImageType(ImageType imageType);
 }
