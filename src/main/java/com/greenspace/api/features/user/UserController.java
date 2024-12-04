@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.greenspace.api.dto.auth.LoginDTO;
 import com.greenspace.api.dto.responses.Response;
@@ -30,6 +32,21 @@ public class UserController {
                 .message("Success")
                 .status(200)
                 .data(loggedUser)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // @PatchMapping("/update-logged-user-password") //Por algum motivo swagger não
+    // reconhece o patchmapping como multipartfile
+    @RequestMapping(value = "/update-logged-user-profile-picture", method = RequestMethod.PATCH, consumes = "multipart/form-data")
+    public ResponseEntity<Response<Object>> updateLoggedUserProfilePicture(@RequestParam("file") MultipartFile file) {
+        UserModel updatedUser = userService.updateLoggedUserProfilePicture(file);
+
+        Response<Object> response = Response.builder()
+                .message("Profile picture updated successfully")
+                .status(200)
+                .data(updatedUser)
                 .build();
 
         return ResponseEntity.ok(response);

@@ -7,37 +7,44 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.greenspace.api.dto.profile.ProfileDTO;
+import com.greenspace.api.enums.ImageType;
 import com.greenspace.api.error.http.NotFound404Exception;
+import com.greenspace.api.features.imagesManager.UserImagesRepository;
 import com.greenspace.api.features.user.UserRepository;
 import com.greenspace.api.jwt.Jwt;
 import com.greenspace.api.models.ProfileModel;
+import com.greenspace.api.models.UserImagesModel;
 import com.greenspace.api.models.UserModel;
 
 @Service
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
-    private final String defaultProfilePicture;
     private final Jwt jwtManager;
     private final UserRepository userRepository;
+    private final UserImagesRepository userImagesRepository;
 
     public ProfileService(
             ProfileRepository profileRepository,
-            String defaultProfilePicture,
             Jwt jwtManager,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            UserImagesRepository userImagesRepository) {
         this.profileRepository = profileRepository;
-        this.defaultProfilePicture = defaultProfilePicture;
         this.jwtManager = jwtManager;
         this.userRepository = userRepository;
+        this.userImagesRepository = userImagesRepository;
     }
 
     public ProfileModel create(UserModel owner) {
+        // Pega a imagem de perfil padrão, a que tem o tipo DEFAULT_PICTURE deve ser
+        // unica, portanto pega a primeira
+        UserImagesModel defaultProfilePicture = userImagesRepository.findByImageType(ImageType.DEFAULT_PICTURE).get(0);
+
         ProfileModel profile = ProfileModel.builder()
                 .bio("")
                 .description("")
                 .privateAccount(false)
-                .profilePicture(defaultProfilePicture)
+                .profilePicture(defaultProfilePicture.getImageUrl())
                 .build();
 
         return profileRepository.save(profile);

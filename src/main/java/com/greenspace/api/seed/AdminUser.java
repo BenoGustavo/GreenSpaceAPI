@@ -29,7 +29,7 @@ public class AdminUser {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     public CommandLineRunner seedAdminUser() {
         return args -> {
             String adminEmail = dotenv.get("ADMIN_EMAIL");
@@ -85,7 +85,7 @@ public class AdminUser {
     }
 
     @Bean
-    @Order(3)
+    @Order(4)
     public CommandLineRunner seedMachineUser() {
         return args -> {
             UserModel machineUser = UserModel.builder()

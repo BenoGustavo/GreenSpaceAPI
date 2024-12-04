@@ -19,7 +19,7 @@ public class BasicPermissionsSeed {
     }
 
     @Bean
-    @Order(1)
+    @Order(2)
     public CommandLineRunner seedPermissions() {
         return args -> {
             if (!permissionsRepository.findByName(PermissionLevel.ROLE_ADMIN).isPresent()) {
