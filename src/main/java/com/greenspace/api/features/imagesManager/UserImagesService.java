@@ -41,7 +41,8 @@ public class UserImagesService {
                                 "public_id", "user_" + user.getId() + "_" + imageType.toString().toLowerCase(),
                                 "use_filename", true,
                                 "unique_filename", false,
-                                "overwrite", true);
+                                "overwrite", true,
+                                "quality", "auto:eco");
 
                 String profilePictureName = "profile_picture_" + user.getId();
 
@@ -82,7 +83,8 @@ public class UserImagesService {
                                                 + userImagesRepository.countUserImageQuantity(loggedUser.getId()),
                                 "use_filename", true,
                                 "unique_filename", false,
-                                "overwrite", false);
+                                "overwrite", false,
+                                "quality", "auto:good");
 
                 // Sobe a foto para o cloudinary
                 String imageUrl = imageUploader.uploadImage(file, loggedUser, imageType, pictureName, options);
@@ -144,7 +146,8 @@ public class UserImagesService {
                                 "public_id", "default_profile_picture",
                                 "use_filename", true,
                                 "unique_filename", false,
-                                "overwrite", true);
+                                "overwrite", true,
+                                "quality", "auto:eco");
 
                 // faz upload da nova foto padrao
                 String profilePictureUrl = imageUploader.uploadImage(
